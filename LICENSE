@@ -1,0 +1,28 @@
+Proprietary License — Agência Conversion
+
+Copyright (c) 2026 Agência Conversion (Conversion Marketing Digital Ltda.).
+All rights reserved.
+
+This software and its associated files are proprietary and confidential. Use is
+authorized solely for clients, partners and employees of Agência Conversion who
+have been individually granted access by the company.
+
+Permitted, with prior written authorization from Agência Conversion:
+
+  1. Local installation via the Claude Code plugin marketplace
+     (`/plugin marketplace add agencia-conversion/conversion-agent-plugin`),
+     for use against the official Conversion backend
+     (`https://agent.conversion.com.br`).
+  2. Use of the produced deliverables for the contracted scope between the
+     authorized user and Agência Conversion.
+
+Expressly prohibited, without prior written authorization:
+
+  - Redistribution, sublicensing, mirroring or republication of any part of
+     this software or its skill stubs.
+  - Decompilation, reverse engineering, or extraction of the proprietary
+     methodology served by the backend.
+  - Use of the deliverables outside the scope contracted with
+     Agência Conversion.
+
+Contact: contato@conversion.com.br

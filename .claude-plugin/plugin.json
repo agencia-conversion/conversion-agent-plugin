@@ -1,0 +1,20 @@
+{
+  "name": "conversion-agent",
+  "version": "0.4.3",
+  "description": "Conversion SEO Engine — skills proprietárias com proteção de IP.",
+  "author": {
+    "name": "Agência Conversion",
+    "email": "contato@conversion.com.br"
+  },
+  "homepage": "https://github.com/agencia-conversion/conversion-agent-plugin",
+  "repository": "https://github.com/agencia-conversion/conversion-agent-plugin",
+  "mcpServers": {
+    "conversion-context": {
+      "command": "npx",
+      "args": ["-y", "@agenciaconversion/mcp-server@0.3.2"],
+      "env": {
+        "CONVERSION_BACKEND_URL": "https://agent.conversion.com.br"
+      }
+    }
+  }
+}

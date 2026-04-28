@@ -1,0 +1,22 @@
+{
+  "name": "conversion-agent",
+  "owner": {
+    "name": "Agência Conversion",
+    "email": "contato@conversion.com.br"
+  },
+  "metadata": {
+    "description": "Marketplace público da Conversion — distribuição do Conversion Agent (skills de SEO via Claude Code plugin).",
+    "version": "0.4.3"
+  },
+  "plugins": [
+    {
+      "name": "conversion-agent",
+      "source": ".",
+      "description": "Engine SEO da Conversion — diagnóstico, briefing, redação, revisão, coesão, cluster e brain-update. Entrada oficial via /conversion-skills:conversion-start. Autenticação transparente via orchestrator.",
+      "version": "0.4.3",
+      "author": {
+        "name": "Agência Conversion"
+      }
+    }
+  ]
+}
