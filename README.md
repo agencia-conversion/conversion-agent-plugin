@@ -193,6 +193,22 @@ Invocadas com `/conversion-agent:<nome>` dentro do Claude Code:
 
 ## Troubleshooting
 
+### `Failed to clone repository: git@github.com: Permission denied (publickey)`
+Aparece no `/plugin install conversion-agent` quando o `git` da máquina
+tenta clonar via SSH e não há chave SSH configurada com o GitHub. Force
+o git a usar HTTPS para clones do GitHub (one-time, no terminal):
+
+```bash
+git config --global url."https://github.com/".insteadOf git@github.com:
+```
+
+Em seguida, no Claude Code:
+
+```
+/plugin marketplace update conversion-agent
+/plugin install conversion-agent
+```
+
 ### `'conversion' is not recognized` (Windows)
 Feche e reabra o terminal. Se persistir, adicione `npm bin -g` ao `PATH`.
 
