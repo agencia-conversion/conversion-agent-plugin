@@ -50,6 +50,7 @@ Dentro do Claude Code:
 ```
 /plugin marketplace add agencia-conversion/conversion-agent-plugin
 /plugin install conversion-agent
+/reload-plugins
 ```
 
 ### 4. **Ative auto-update agora** (recomendado)
@@ -128,6 +129,7 @@ Idêntico ao Mac:
 ```
 /plugin marketplace add agencia-conversion/conversion-agent-plugin
 /plugin install conversion-agent
+/reload-plugins
 ```
 
 ### 6. **Ative auto-update agora** (recomendado)
@@ -193,21 +195,35 @@ Invocadas com `/conversion-agent:<nome>` dentro do Claude Code:
 
 ## Troubleshooting
 
+### `Failed to install: This plugin uses a source type your Claude Code version does not support`
+Aparece quando o `marketplace.json` em cache no Claude Code é antigo (de
+uma versão anterior do plugin). Force re-add do marketplace:
+
+```
+/plugin marketplace remove conversion-agent
+/plugin marketplace add agencia-conversion/conversion-agent-plugin
+/plugin install conversion-agent
+/reload-plugins
+```
+
 ### `Failed to clone repository: git@github.com: Permission denied (publickey)`
-Aparece no `/plugin install conversion-agent` quando o `git` da máquina
-tenta clonar via SSH e não há chave SSH configurada com o GitHub. Force
-o git a usar HTTPS para clones do GitHub (one-time, no terminal):
+Aparece quando uma versão antiga do plugin (`source: github` em formato
+objeto) está em cache. Mesmo fix do erro acima — `marketplace remove` +
+`add` baixa o manifest novo, que usa path relativo dentro do próprio
+repo e não precisa de SSH.
+
+Se ainda persistir após o re-add, force o git a usar HTTPS pra clones do
+GitHub (one-time, no terminal):
 
 ```bash
 git config --global url."https://github.com/".insteadOf git@github.com:
 ```
 
-Em seguida, no Claude Code:
-
-```
-/plugin marketplace update conversion-agent
-/plugin install conversion-agent
-```
+### `(no content)` ao rodar `/plugin install conversion-agent`
+O install deu silêncio sem nem abrir o card de detalhes. Significa que o
+manifest ainda está em cache e não bateu com o novo. Faça
+`/plugin marketplace remove conversion-agent` + add + install (mesma
+sequência do erro acima).
 
 ### `'conversion' is not recognized` (Windows)
 Feche e reabra o terminal. Se persistir, adicione `npm bin -g` ao `PATH`.
