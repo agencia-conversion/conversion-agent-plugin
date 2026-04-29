@@ -6,8 +6,8 @@
     "name": "Agência Conversion",
     "email": "contato@conversion.com.br"
   },
-  "homepage": "https://github.com/agencia-conversion/conversion-agent-plugin",
-  "repository": "https://github.com/agencia-conversion/conversion-agent-plugin",
+  "homepage": "https://github.com/agencia-conversion/conversion-skills",
+  "repository": "https://github.com/agencia-conversion/conversion-skills",
   "mcpServers": {
     "conversion-context": {
       "command": "npx",
