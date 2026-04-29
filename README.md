@@ -52,10 +52,21 @@ Dentro do Claude Code:
 /plugin install conversion-agent
 ```
 
-### 4. (Opcional) Auto-update
+### 4. **Ative auto-update agora** (recomendado)
 
-`/plugin` → **Marketplaces** → `agencia-conversion` → **Enable
-auto-update**.
+Logo após instalar, dentro do Claude Code rode:
+
+```
+/plugin
+```
+
+→ aba **Marketplaces** → selecione **conversion-agent** → toggle
+**Enable auto-update**.
+
+A cada vez que o Claude Code abrir, ele checa se houve commit novo no
+repo público e atualiza o plugin sozinho. Sem isso, você precisaria
+rodar `/plugin marketplace update conversion-agent` manualmente para
+receber correções.
 
 ### 5. Smoke test
 
@@ -119,7 +130,17 @@ Idêntico ao Mac:
 /plugin install conversion-agent
 ```
 
-### 6. Smoke
+### 6. **Ative auto-update agora** (recomendado)
+
+Dentro do Claude Code:
+
+```
+/plugin
+```
+
+→ aba **Marketplaces** → **conversion-agent** → **Enable auto-update**.
+
+### 7. Smoke
 
 ```
 /conversion-agent:whereami
