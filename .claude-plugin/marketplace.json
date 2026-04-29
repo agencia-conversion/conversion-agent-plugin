@@ -11,10 +11,7 @@
   "plugins": [
     {
       "name": "conversion-agent",
-      "source": {
-        "source": "github",
-        "repo": "agencia-conversion/conversion-agent-plugin"
-      },
+      "source": "./plugins/conversion-agent",
       "description": "Engine SEO da Conversion — diagnóstico, briefing, redação, revisão, coesão, cluster e brain-update. Entrada oficial via /conversion-agent:conversion-start. Autenticação via `npm i -g @agenciaconversion/cli && conversion login`.",
       "version": "0.4.3",
       "author": {
