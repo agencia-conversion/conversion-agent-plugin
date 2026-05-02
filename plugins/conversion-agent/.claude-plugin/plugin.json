@@ -11,7 +11,7 @@
   "mcpServers": {
     "conversion-context": {
       "command": "npx",
-      "args": ["-y", "@agenciaconversion/mcp-server@0.3.2"],
+      "args": ["-y", "@agenciaconversion/mcp-server@0.3.3"],
       "env": {
         "CONVERSION_BACKEND_URL": "https://agent.conversion.com.br"
       }
