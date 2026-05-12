@@ -1,6 +1,9 @@
 ---
 name: convidar
-description: Convida um member pro workspace ativo (ou outro via `--ws`). Arg: `<email>`. Use quando o usuário disser "convida fulano@x.com pra acme", "adiciona o joão como member", "manda convite pro novo dev".
+description: >-
+  Convida um member pro workspace ativo (ou outro via `--ws`). Arg: `<email>`.
+  Use quando o usuário disser "convida fulano@x.com pra acme", "adiciona o
+  joão como member", "manda convite pro novo dev".
 ---
 
 # /conversion-skills:convidar <email> [--ws <ws-slug>]

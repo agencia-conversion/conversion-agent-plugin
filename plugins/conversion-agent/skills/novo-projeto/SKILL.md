@@ -1,6 +1,10 @@
 ---
 name: novo-projeto
-description: Cria um novo project no workspace ativo (ou em ws explícito). Args: `<proj-slug>` (no ws ativo) ou `<ws>/<proj>` (cross-ws), `--name "Nome"`. Use quando o usuário disser "cria um project", "novo site pra acme", "adiciona o cliente X.com.br no acme".
+description: >-
+  Cria um novo project no workspace ativo (ou em ws explícito). Args:
+  `<proj-slug>` (no ws ativo) ou `<ws>/<proj>` (cross-ws), `--name "Nome"`.
+  Use quando o usuário disser "cria um project", "novo site pra acme",
+  "adiciona o cliente X.com.br no acme".
 ---
 
 # /conversion-skills:novo-projeto [<slug> | <ws>/<proj>] [--name "Nome"]
