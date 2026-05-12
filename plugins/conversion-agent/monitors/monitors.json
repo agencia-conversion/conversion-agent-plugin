@@ -1,0 +1,7 @@
+[
+  {
+    "name": "conversion-sync-monitor",
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/sync-monitor/boot.mjs\"",
+    "description": "Conversion project sync status"
+  }
+]

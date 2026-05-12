@@ -1,0 +1,46 @@
+{
+  "name": "@agenciaconversion/mcp-server",
+  "version": "0.3.4",
+  "description": "MCP stdio server shipped inside the Conversion Agent plugin. Bridges Claude Code to the Conversion backend.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "conversion-mcp-server": "./bin.js"
+  },
+  "files": [
+    "bin.js",
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/agencia-conversion/conversion-skills.git",
+    "directory": "packages/plugin/mcp-server"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@agenciaconversion/local-sync": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "keytar": "^7.9.0"
+  },
+  "devDependencies": {
+    "@agenciaconversion/shared": "^0.1.2",
+    "@types/node": "^20.14.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.5"
+  }
+}

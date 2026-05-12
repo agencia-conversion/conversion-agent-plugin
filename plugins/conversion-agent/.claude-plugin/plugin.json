@@ -1,6 +1,6 @@
 {
   "name": "conversion-agent",
-  "version": "0.4.5",
+  "version": "0.4.7",
   "description": "Conversion SEO Engine — skills proprietárias com proteção de IP.",
   "author": {
     "name": "Agência Conversion",
@@ -8,10 +8,13 @@
   },
   "homepage": "https://github.com/agencia-conversion/conversion-skills",
   "repository": "https://github.com/agencia-conversion/conversion-skills",
+  "experimental": {
+    "monitors": "./monitors/monitors.json"
+  },
   "mcpServers": {
     "conversion-context": {
-      "command": "npx",
-      "args": ["-y", "@agenciaconversion/mcp-server@0.3.3"],
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp-server/dist/index.js"],
       "env": {
         "CONVERSION_BACKEND_URL": "https://agent.conversion.com.br"
       }
