@@ -1,15 +1,19 @@
-import { appendFile, mkdir, readFile, rm, stat, writeFile, } from "node:fs/promises";
+import { appendFile, mkdir, readFile, readdir, rm, stat, writeFile, } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { readPluginAuth, reconcileSyncProject, } from "./engine.mjs";
 const VERSION = "0.1.0";
 const DEFAULT_INTERVAL_MS = 30_000;
 const HEARTBEAT_MS = 10_000;
 const STALE_LOCK_MS = 45_000;
 const PROJECT_CONCURRENCY = 2;
+const PLUGIN_NAME = "conversion-agent";
 const ACTIONABLE_EVENTS = new Set([
+    "sync_inactive",
     "sync_ready",
     "sync_observe",
+    "sync_stale_plugin",
     "auth_required",
     "sync_conflict",
     "sync_error",
@@ -68,6 +72,81 @@ async function pathExists(path) {
     catch {
         return false;
     }
+}
+function pluginRoot() {
+    return resolve(process.env["CLAUDE_PLUGIN_ROOT"] ?? dirname(dirname(fileURLToPath(import.meta.url))));
+}
+async function readJson(path) {
+    try {
+        return JSON.parse(await readFile(path, "utf8"));
+    }
+    catch {
+        return null;
+    }
+}
+async function readPluginVersion(path) {
+    const parsed = await readJson(path);
+    return typeof parsed?.version === "string" ? parsed.version : null;
+}
+async function readMarketplacePluginVersion(path) {
+    const parsed = await readJson(path);
+    const entry = parsed?.plugins?.find((plugin) => plugin.name === PLUGIN_NAME);
+    return typeof entry?.version === "string" ? entry.version : null;
+}
+async function findMarketplaceVersion() {
+    const explicitPath = process.env["CONVERSION_PLUGIN_MARKETPLACE_PATH"];
+    if (explicitPath)
+        return readMarketplacePluginVersion(explicitPath);
+    const marketplaceRoot = join(homedir(), ".claude", "plugins", "marketplaces");
+    let entries;
+    try {
+        entries = await readdir(marketplaceRoot);
+    }
+    catch {
+        return null;
+    }
+    for (const entry of entries) {
+        const version = await readMarketplacePluginVersion(join(marketplaceRoot, entry, ".claude-plugin", "marketplace.json"));
+        if (version)
+            return version;
+    }
+    return null;
+}
+function parseSemver(value) {
+    if (!value)
+        return null;
+    const match = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/u.exec(value);
+    if (!match)
+        return null;
+    return [
+        Number.parseInt(match[1], 10),
+        Number.parseInt(match[2], 10),
+        Number.parseInt(match[3], 10),
+    ];
+}
+function semverGreater(a, b) {
+    const left = parseSemver(a);
+    const right = parseSemver(b);
+    if (!left || !right)
+        return false;
+    for (let index = 0; index < left.length; index += 1) {
+        if (left[index] > right[index])
+            return true;
+        if (left[index] < right[index])
+            return false;
+    }
+    return false;
+}
+async function detectPluginVersions() {
+    const root = pluginRoot();
+    const installedVersion = await readPluginVersion(join(root, ".claude-plugin", "plugin.json"));
+    const expectedVersion = await findMarketplaceVersion();
+    return {
+        pluginRoot: root,
+        installedVersion,
+        expectedVersion,
+        stale: semverGreater(expectedVersion, installedVersion),
+    };
 }
 async function findHubRoot(startDir) {
     let current = resolve(startDir);
@@ -233,8 +312,9 @@ async function reconcileSelectedProject(input) {
         if (result.status === "ok") {
             const pendingUpload = result.plan.upload.length;
             const pendingDownload = result.plan.download.length + result.plan.deleteLocal.length;
-            await log(result.mode === "observe" && pendingUpload + pendingDownload > 0 ? "warn" : "info", `project ${project.key} mode=${result.mode} plan=${result.plan.status} pendingUpload=${pendingUpload} pendingDownload=${pendingDownload} commit=${result.commitId ?? "none"}`);
-            if (result.mode === "observe" && pendingUpload + pendingDownload > 0) {
+            const lastRunAt = new Date().toISOString();
+            await log(result.mode === "observe" && pendingUpload + pendingDownload > 0 ? "warn" : "info", `project ${project.key} mode=${result.mode} plan=${result.plan.status} pendingUpload=${pendingUpload} pendingDownload=${pendingDownload} lastRunAt=${lastRunAt} commit=${result.commitId ?? "none"}`);
+            if (result.mode === "observe") {
                 const observeKey = `${pendingUpload}:${pendingDownload}:${result.plan.upload.join(",")}:${result.plan.download.join(",")}:${result.plan.deleteLocal.join(",")}`;
                 if (lastObserveKeys.get(project.key) !== observeKey) {
                     lastObserveKeys.set(project.key, observeKey);
@@ -242,6 +322,7 @@ async function reconcileSelectedProject(input) {
                         project: project.key,
                         pendingUpload,
                         pendingDownload,
+                        lastRunAt,
                     });
                 }
             }
@@ -288,6 +369,7 @@ async function mapLimit(items, limit, fn) {
 }
 async function run() {
     const projectDir = resolve(process.env["CLAUDE_PROJECT_DIR"] || process.cwd());
+    const pluginVersions = await detectPluginVersions();
     let lastReadyKey = null;
     const lastAuthRequiredKeys = new Set();
     const lastObserveKeys = new Map();
@@ -310,11 +392,28 @@ async function run() {
             const readyKey = `${state.hubRoot}:${state.projectCount}:${state.activeProject ?? ""}:${state.syncProjects.length}`;
             if (readyKey !== lastReadyKey) {
                 lastReadyKey = readyKey;
-                emit("sync_ready", {
-                    projects: state.projectCount,
-                    selected: state.syncProjects.length,
-                    active: state.activeProject !== null,
-                });
+                if (state.syncProjects.length > 0) {
+                    emit("sync_ready", {
+                        projects: state.projectCount,
+                        selected: state.syncProjects.length,
+                        active: true,
+                        activeProject: state.activeProject,
+                        installedVersion: pluginVersions.installedVersion,
+                        expectedVersion: pluginVersions.expectedVersion,
+                    });
+                }
+                else {
+                    emit("sync_inactive", {
+                        projects: state.projectCount,
+                        selected: 0,
+                        active: false,
+                        reason: "no_selected_project",
+                        projectDir,
+                        activeProject: state.activeProject,
+                        installedVersion: pluginVersions.installedVersion,
+                        expectedVersion: pluginVersions.expectedVersion,
+                    });
+                }
             }
         }
         if (!state.hubRoot || state.syncProjects.length === 0)
@@ -347,7 +446,14 @@ async function run() {
         }
     };
     try {
-        await log("info", `started projectDir=${projectDir}`);
+        await log("info", `started projectDir=${projectDir} pluginRoot=${pluginVersions.pluginRoot} installedVersion=${pluginVersions.installedVersion ?? "unknown"} expectedVersion=${pluginVersions.expectedVersion ?? "unknown"}`);
+        if (pluginVersions.stale) {
+            emit("sync_stale_plugin", {
+                installedVersion: pluginVersions.installedVersion,
+                expectedVersion: pluginVersions.expectedVersion,
+                hint: "/plugin update conversion-agent and restart Claude Code",
+            });
+        }
         await guardedTick();
         if (!runOnce) {
             await new Promise((resolvePromise) => {
