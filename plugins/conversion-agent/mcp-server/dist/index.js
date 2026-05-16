@@ -20841,11 +20841,18 @@ var FETCH_TIMEOUT_MS = 3e4;
 import { mkdir, readFile, rename, writeFile, chmod } from "fs/promises";
 import { homedir } from "os";
 import { dirname, join } from "path";
+var CANONICAL_PLUGIN_DATA_DIR = process.env["CONVERSION_PLUGIN_DATA_DIR"] ?? join(homedir(), ".conversion", "plugin-data");
 function pluginDataDir() {
   return PLUGIN_DATA_DIR ?? join(homedir(), ".conversion", "plugin-data");
 }
 function pluginAuthPath() {
   return join(pluginDataDir(), "auth.json");
+}
+function canonicalPluginAuthPath() {
+  return join(CANONICAL_PLUGIN_DATA_DIR, "auth.json");
+}
+function authPaths() {
+  return [.../* @__PURE__ */ new Set([pluginAuthPath(), canonicalPluginAuthPath()])];
 }
 function isAuthFile(value) {
   if (!value || typeof value !== "object") return false;
@@ -20853,21 +20860,29 @@ function isAuthFile(value) {
   return typeof obj["email"] === "string" && typeof obj["access_token"] === "string" && (obj["expires_at"] === void 0 || typeof obj["expires_at"] === "string");
 }
 async function readPluginAuth() {
-  try {
-    const parsed = JSON.parse(await readFile(pluginAuthPath(), "utf8"));
-    if (!isAuthFile(parsed)) return null;
-    return {
-      email: parsed.email,
-      token: parsed.access_token,
-      expiresAt: parsed.expires_at,
-      source: "plugin-data"
-    };
-  } catch {
-    return null;
+  for (const path of authPaths()) {
+    try {
+      const parsed = JSON.parse(await readFile(path, "utf8"));
+      if (!isAuthFile(parsed)) continue;
+      return {
+        email: parsed.email,
+        token: parsed.access_token,
+        expiresAt: parsed.expires_at,
+        source: "plugin-data"
+      };
+    } catch {
+    }
   }
+  return null;
 }
 async function savePluginAuth(input) {
-  const path = pluginAuthPath();
+  const [primary, ...fallbacks] = authPaths();
+  if (primary) await savePluginAuthAt(primary, input);
+  for (const path of fallbacks) {
+    await savePluginAuthAt(path, input).catch(() => void 0);
+  }
+}
+async function savePluginAuthAt(path, input) {
   await mkdir(dirname(path), { recursive: true, mode: 448 });
   await chmod(dirname(path), 448).catch(() => void 0);
   const tmp = `${path}.${process.pid}.tmp`;
