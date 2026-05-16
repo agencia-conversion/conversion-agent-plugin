@@ -40,6 +40,8 @@ const TEXT_APPLICATION_MIMES = new Set([
     "application/yaml",
     "application/x-yaml",
 ]);
+const BYTE_ORDER_MARK = /\uFEFF/gu;
+const ZERO_WIDTH_WATERMARK_FRAME = /\u200D[\u200B\u200C]{32}\u200D/gu;
 const CANONICAL_PLUGIN_DATA_DIR = process.env["CONVERSION_PLUGIN_DATA_DIR"] ??
     join(homedir(), ".conversion", "plugin-data");
 export function pluginDataDir() {
@@ -705,9 +707,19 @@ function canonicalizeContent(input, mime) {
         ? input.subarray(3)
         : input;
     const decoded = new TextDecoder("utf-8").decode(withoutBom);
-    const lfOnly = decoded.replace(/\r\n?/gu, "\n");
+    const clean = isMarkdownMime(mime) ? stripMarkdownWatermark(decoded) : decoded;
+    const lfOnly = clean.replace(/\r\n?/gu, "\n");
     const normalized = lfOnly.length > 0 ? lfOnly.replace(/\n+$/gu, "") + "\n" : lfOnly;
     return new TextEncoder().encode(normalized);
+}
+function stripMarkdownWatermark(text) {
+    return text
+        .replace(BYTE_ORDER_MARK, "")
+        .replace(ZERO_WIDTH_WATERMARK_FRAME, "");
+}
+function isMarkdownMime(mime) {
+    const lower = mime.toLowerCase().split(";")[0]?.trim() ?? "";
+    return lower === "text/markdown" || lower === "text/x-markdown";
 }
 function isTextMime(mime) {
     const lower = mime.toLowerCase().split(";")[0]?.trim() ?? "";
