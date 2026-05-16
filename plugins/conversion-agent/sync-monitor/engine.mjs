@@ -40,26 +40,37 @@ const TEXT_APPLICATION_MIMES = new Set([
     "application/yaml",
     "application/x-yaml",
 ]);
+const CANONICAL_PLUGIN_DATA_DIR = process.env["CONVERSION_PLUGIN_DATA_DIR"] ??
+    join(homedir(), ".conversion", "plugin-data");
 export function pluginDataDir() {
     return process.env["CLAUDE_PLUGIN_DATA"] ?? join(homedir(), ".conversion", "plugin-data");
 }
 export function pluginAuthPath() {
     return join(pluginDataDir(), "auth.json");
 }
+function canonicalPluginAuthPath() {
+    return join(CANONICAL_PLUGIN_DATA_DIR, "auth.json");
+}
+function authPaths() {
+    return [...new Set([pluginAuthPath(), canonicalPluginAuthPath()])];
+}
 export async function readPluginAuth() {
-    try {
-        const parsed = JSON.parse(await readFile(pluginAuthPath(), "utf8"));
-        if (!isAuthFile(parsed))
-            return null;
-        return {
-            email: parsed.email,
-            token: parsed.access_token,
-            expiresAt: parsed.expires_at,
-        };
+    for (const path of authPaths()) {
+        try {
+            const parsed = JSON.parse(await readFile(path, "utf8"));
+            if (!isAuthFile(parsed))
+                continue;
+            return {
+                email: parsed.email,
+                token: parsed.access_token,
+                expiresAt: parsed.expires_at,
+            };
+        }
+        catch {
+            // Try the next auth source.
+        }
     }
-    catch {
-        return null;
-    }
+    return null;
 }
 export async function reconcileSyncProject(input) {
     let mode;
@@ -421,7 +432,14 @@ async function authedFetch(auth, path, init) {
     return response;
 }
 async function savePluginAuth(input) {
-    const path = pluginAuthPath();
+    const [primary, ...fallbacks] = authPaths();
+    if (primary)
+        await savePluginAuthAt(primary, input);
+    for (const path of fallbacks) {
+        await savePluginAuthAt(path, input).catch(() => undefined);
+    }
+}
+async function savePluginAuthAt(path, input) {
     await mkdir(dirname(path), { recursive: true, mode: 0o700 });
     await chmod(dirname(path), 0o700).catch(() => undefined);
     const tmp = `${path}.${process.pid}.tmp`;

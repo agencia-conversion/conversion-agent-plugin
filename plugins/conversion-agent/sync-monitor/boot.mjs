@@ -1,13 +1,15 @@
 import { appendFile, mkdir, readFile, rm, stat, writeFile, } from "node:fs/promises";
 import { homedir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { readPluginAuth, reconcileSyncProject, } from "./engine.mjs";
 const VERSION = "0.1.0";
 const DEFAULT_INTERVAL_MS = 30_000;
 const HEARTBEAT_MS = 10_000;
 const STALE_LOCK_MS = 45_000;
+const PROJECT_CONCURRENCY = 2;
 const ACTIONABLE_EVENTS = new Set([
     "sync_ready",
+    "sync_observe",
     "auth_required",
     "sync_conflict",
     "sync_error",
@@ -84,7 +86,7 @@ async function readHubState(hubRoot) {
             hubRoot: null,
             projectCount: 0,
             activeProject: null,
-            syncProject: null,
+            syncProjects: [],
         };
     }
     const raw = await readFile(join(hubRoot, ".conversion-hub.json"), "utf8");
@@ -97,7 +99,7 @@ async function readHubState(hubRoot) {
         hubRoot,
         projectCount: projects.length,
         activeProject: active,
-        syncProject: selectSyncProject(hubRoot, projects),
+        syncProjects: selectSyncProjects(hubRoot, projects, active),
     };
 }
 function parseActiveProject(active) {
@@ -119,16 +121,31 @@ function isMaterializedSyncProject(project) {
 function projectAbsolutePath(hubRoot, projectPath) {
     return join(hubRoot, ...projectPath.split("/"));
 }
-function selectSyncProject(hubRoot, projects) {
+function isWithinPath(candidate, parent) {
+    const rel = relative(parent, candidate);
+    return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
+}
+function selectSyncProjects(hubRoot, projects, activeProject) {
     const projectDir = resolve(process.env["CLAUDE_PROJECT_DIR"] || process.cwd());
+    const normalizedHub = resolve(hubRoot);
+    const selected = [];
     for (const project of projects) {
         if (!isMaterializedSyncProject(project))
             continue;
-        if (resolve(projectAbsolutePath(hubRoot, project.path)) === projectDir) {
-            return project;
-        }
+        const absolutePath = resolve(projectAbsolutePath(hubRoot, project.path));
+        const key = `${project.ws_slug}/${project.proj_slug}`;
+        const openedHub = projectDir === normalizedHub;
+        const openedProject = isWithinPath(projectDir, absolutePath);
+        if (!openedHub && !openedProject)
+            continue;
+        selected.push({ ...project, absolutePath, key });
     }
-    return null;
+    selected.sort((a, b) => {
+        const activeA = a.key === activeProject ? 0 : 1;
+        const activeB = b.key === activeProject ? 0 : 1;
+        return activeA - activeB || a.key.localeCompare(b.key);
+    });
+    return selected;
 }
 function lockDir(projectDir, hubRoot) {
     void hubRoot;
@@ -195,94 +212,155 @@ async function acquireLock(projectDir, hubRoot) {
 async function releaseLock(dir) {
     await rm(dir, { recursive: true, force: true });
 }
-async function run() {
-    const projectDir = resolve(process.env["CLAUDE_PROJECT_DIR"] || process.cwd());
-    const initialHubRoot = await findHubRoot(projectDir);
-    const acquiredLock = await acquireLock(projectDir, initialHubRoot);
+async function reconcileSelectedProject(input) {
+    const { project, auth, lastObserveKeys } = input;
+    const acquiredLock = await acquireLock(project.absolutePath, null);
     if (!acquiredLock) {
-        await log("info", `another sync monitor already owns ${initialHubRoot ?? projectDir}`);
+        await log("info", `project ${project.key} skipped: lock in use`);
         return;
     }
-    let lastReadyKey = null;
-    let lastAuthRequiredKey = null;
-    let stopped = false;
     const heartbeat = setInterval(() => {
-        void writeLockMetadata(acquiredLock, projectDir, initialHubRoot).catch((err) => {
-            void log("warn", `lock heartbeat failed: ${String(err)}`);
+        void writeLockMetadata(acquiredLock, project.absolutePath, null).catch((err) => {
+            void log("warn", `lock heartbeat failed ${project.key}: ${String(err)}`);
         });
     }, HEARTBEAT_MS);
-    const stop = async () => {
+    try {
+        const result = await reconcileSyncProject({
+            projectRoot: project.absolutePath,
+            project,
+            auth,
+        });
+        if (result.status === "ok") {
+            const pendingUpload = result.plan.upload.length;
+            const pendingDownload = result.plan.download.length + result.plan.deleteLocal.length;
+            await log(result.mode === "observe" && pendingUpload + pendingDownload > 0 ? "warn" : "info", `project ${project.key} mode=${result.mode} plan=${result.plan.status} pendingUpload=${pendingUpload} pendingDownload=${pendingDownload} commit=${result.commitId ?? "none"}`);
+            if (result.mode === "observe" && pendingUpload + pendingDownload > 0) {
+                const observeKey = `${pendingUpload}:${pendingDownload}:${result.plan.upload.join(",")}:${result.plan.download.join(",")}:${result.plan.deleteLocal.join(",")}`;
+                if (lastObserveKeys.get(project.key) !== observeKey) {
+                    lastObserveKeys.set(project.key, observeKey);
+                    emit("sync_observe", {
+                        project: project.key,
+                        pendingUpload,
+                        pendingDownload,
+                    });
+                }
+            }
+            else {
+                lastObserveKeys.delete(project.key);
+            }
+            return;
+        }
+        if (result.status === "skipped") {
+            await log("info", `project ${project.key} skipped mode=${result.mode} reason=${result.reason}`);
+            return;
+        }
+        if (result.status === "conflict") {
+            emit("sync_conflict", {
+                project: project.key,
+                conflicts: result.conflicts.length,
+                snapshot: result.snapshotDir,
+            });
+            await log("warn", `project ${project.key} conflict mode=${result.mode} conflicts=${result.conflicts.length} snapshot=${result.snapshotDir}`);
+            return;
+        }
+        emit("sync_error", { project: project.key, code: "reconcile_failed" });
+        await log("error", `reconcile ${project.key} failed: ${result.error}`);
+    }
+    finally {
+        clearInterval(heartbeat);
+        await releaseLock(acquiredLock);
+    }
+}
+async function mapLimit(items, limit, fn) {
+    let cursor = 0;
+    const worker = async () => {
+        for (;;) {
+            const index = cursor;
+            cursor += 1;
+            const item = items[index];
+            if (item === undefined)
+                return;
+            await fn(item);
+        }
+    };
+    const workers = Array.from({ length: Math.min(limit, items.length) }, () => worker());
+    await Promise.all(workers);
+}
+async function run() {
+    const projectDir = resolve(process.env["CLAUDE_PROJECT_DIR"] || process.cwd());
+    let lastReadyKey = null;
+    const lastAuthRequiredKeys = new Set();
+    const lastObserveKeys = new Map();
+    let stopped = false;
+    let ticking = false;
+    let finishLoop = null;
+    const stop = () => {
         if (stopped)
             return;
         stopped = true;
-        clearInterval(heartbeat);
-        await releaseLock(acquiredLock);
+        finishLoop?.();
     };
-    process.once("SIGINT", () => {
-        void stop().finally(() => process.exit(0));
-    });
-    process.once("SIGTERM", () => {
-        void stop().finally(() => process.exit(0));
-    });
+    process.once("SIGINT", stop);
+    process.once("SIGTERM", stop);
     const tick = async () => {
         const hubRoot = await findHubRoot(projectDir);
         const state = await readHubState(hubRoot);
-        await log("info", `tick hub=${state.hubRoot ? "present" : "missing"} projects=${state.projectCount}`);
+        await log("info", `tick hub=${state.hubRoot ? "present" : "missing"} projects=${state.projectCount} selected=${state.syncProjects.length}`);
         if (state.hubRoot && state.projectCount > 0) {
-            const readyKey = `${state.hubRoot}:${state.projectCount}:${state.activeProject ?? ""}`;
+            const readyKey = `${state.hubRoot}:${state.projectCount}:${state.activeProject ?? ""}:${state.syncProjects.length}`;
             if (readyKey !== lastReadyKey) {
                 lastReadyKey = readyKey;
                 emit("sync_ready", {
                     projects: state.projectCount,
+                    selected: state.syncProjects.length,
                     active: state.activeProject !== null,
                 });
             }
         }
-        if (!state.hubRoot || !state.syncProject)
+        if (!state.hubRoot || state.syncProjects.length === 0)
             return;
         const auth = await readPluginAuth();
-        const projectKey = `${state.syncProject.ws_slug}/${state.syncProject.proj_slug}`;
         if (!auth) {
-            if (lastAuthRequiredKey !== projectKey) {
-                lastAuthRequiredKey = projectKey;
-                emit("auth_required", { project: projectKey });
+            for (const project of state.syncProjects) {
+                if (lastAuthRequiredKeys.has(project.key))
+                    continue;
+                lastAuthRequiredKeys.add(project.key);
+                emit("auth_required", { project: project.key });
             }
             return;
         }
-        const result = await reconcileSyncProject({
-            projectRoot: projectDir,
-            project: state.syncProject,
+        await mapLimit(state.syncProjects, PROJECT_CONCURRENCY, (project) => reconcileSelectedProject({
+            project,
             auth,
-        });
-        if (result.status === "conflict") {
-            emit("sync_conflict", {
-                project: projectKey,
-                conflicts: result.conflicts.length,
-                snapshot: result.snapshotDir,
-            });
+            lastObserveKeys,
+        }));
+    };
+    const guardedTick = async () => {
+        if (ticking || stopped)
+            return;
+        ticking = true;
+        try {
+            await tick();
         }
-        else if (result.status === "error") {
-            emit("sync_error", { project: projectKey, code: "reconcile_failed" });
-            await log("error", `reconcile ${projectKey} failed: ${result.error}`);
+        finally {
+            ticking = false;
         }
     };
     try {
         await log("info", `started projectDir=${projectDir}`);
-        await tick();
+        await guardedTick();
         if (!runOnce) {
             await new Promise((resolvePromise) => {
                 const timer = setInterval(() => {
-                    void tick().catch((err) => {
+                    void guardedTick().catch((err) => {
                         void log("error", `tick failed: ${String(err)}`);
                         emit("sync_error", { code: "tick_failed" });
                     });
                 }, intervalMs);
-                const finish = () => {
+                finishLoop = () => {
                     clearInterval(timer);
                     resolvePromise();
                 };
-                process.once("SIGINT", finish);
-                process.once("SIGTERM", finish);
             });
         }
     }
@@ -292,7 +370,7 @@ async function run() {
         process.exitCode = 1;
     }
     finally {
-        await stop();
+        stopped = true;
     }
 }
 void run();
