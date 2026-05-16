@@ -20965,7 +20965,7 @@ var AUTH_LOGIN_START_INPUT_SCHEMA = {
     email: { type: "string", minLength: 3 },
     callback_url: {
       type: "string",
-      description: "Optional localhost callback URL. Defaults to a non-listening localhost URL suitable for polling."
+      description: "Optional callback URL. Defaults to the Conversion Agent web callback; localhost is only for legacy CLI flows."
     }
   },
   required: ["email"],
@@ -20995,8 +20995,8 @@ async function runAuthLoginStart(input) {
     return { ok: false, error: "bad_input", hint: "Field 'email' is required." };
   }
   const state = randomBytes(18).toString("base64url");
-  const callbackUrl = input.callback_url ?? "http://localhost:9/auth/callback";
   try {
+    const callbackUrl = input.callback_url ?? defaultWebCallbackUrl();
     const res = await fetch(`${BACKEND_URL}/api/auth/magic-link`, {
       method: "POST",
       headers: { "content-type": "application/json", accept: "application/json" },
@@ -21027,6 +21027,11 @@ async function runAuthLoginStart(input) {
       hint: err instanceof Error ? err.message : String(err)
     };
   }
+}
+function defaultWebCallbackUrl() {
+  const url2 = new URL(`${BACKEND_URL}/auth/callback`);
+  url2.searchParams.set("source", "claude-plugin");
+  return url2.toString();
 }
 async function runAuthLoginPoll(input) {
   if (!input || typeof input.email !== "string" || typeof input.state !== "string") {
