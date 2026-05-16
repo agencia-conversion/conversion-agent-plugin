@@ -2979,7 +2979,7 @@ var require_compile = __commonJS({
       const schOrFunc = root.refs[ref];
       if (schOrFunc)
         return schOrFunc;
-      let _sch = resolve2.call(this, root, ref);
+      let _sch = resolve3.call(this, root, ref);
       if (_sch === void 0) {
         const schema = (_a2 = root.localRefs) === null || _a2 === void 0 ? void 0 : _a2[ref];
         const { schemaId } = this.opts;
@@ -3006,7 +3006,7 @@ var require_compile = __commonJS({
     function sameSchemaEnv(s1, s2) {
       return s1.schema === s2.schema && s1.root === s2.root && s1.baseId === s2.baseId;
     }
-    function resolve2(root, ref) {
+    function resolve3(root, ref) {
       let sch;
       while (typeof (sch = this.refs[ref]) == "string")
         ref = sch;
@@ -3581,55 +3581,55 @@ var require_fast_uri = __commonJS({
       }
       return uri;
     }
-    function resolve2(baseURI, relativeURI, options) {
+    function resolve3(baseURI, relativeURI, options) {
       const schemelessOptions = options ? Object.assign({ scheme: "null" }, options) : { scheme: "null" };
       const resolved = resolveComponent(parse3(baseURI, schemelessOptions), parse3(relativeURI, schemelessOptions), schemelessOptions, true);
       schemelessOptions.skipEscape = true;
       return serialize(resolved, schemelessOptions);
     }
-    function resolveComponent(base, relative2, options, skipNormalization) {
+    function resolveComponent(base, relative3, options, skipNormalization) {
       const target = {};
       if (!skipNormalization) {
         base = parse3(serialize(base, options), options);
-        relative2 = parse3(serialize(relative2, options), options);
+        relative3 = parse3(serialize(relative3, options), options);
       }
       options = options || {};
-      if (!options.tolerant && relative2.scheme) {
-        target.scheme = relative2.scheme;
-        target.userinfo = relative2.userinfo;
-        target.host = relative2.host;
-        target.port = relative2.port;
-        target.path = removeDotSegments(relative2.path || "");
-        target.query = relative2.query;
+      if (!options.tolerant && relative3.scheme) {
+        target.scheme = relative3.scheme;
+        target.userinfo = relative3.userinfo;
+        target.host = relative3.host;
+        target.port = relative3.port;
+        target.path = removeDotSegments(relative3.path || "");
+        target.query = relative3.query;
       } else {
-        if (relative2.userinfo !== void 0 || relative2.host !== void 0 || relative2.port !== void 0) {
-          target.userinfo = relative2.userinfo;
-          target.host = relative2.host;
-          target.port = relative2.port;
-          target.path = removeDotSegments(relative2.path || "");
-          target.query = relative2.query;
+        if (relative3.userinfo !== void 0 || relative3.host !== void 0 || relative3.port !== void 0) {
+          target.userinfo = relative3.userinfo;
+          target.host = relative3.host;
+          target.port = relative3.port;
+          target.path = removeDotSegments(relative3.path || "");
+          target.query = relative3.query;
         } else {
-          if (!relative2.path) {
+          if (!relative3.path) {
             target.path = base.path;
-            if (relative2.query !== void 0) {
-              target.query = relative2.query;
+            if (relative3.query !== void 0) {
+              target.query = relative3.query;
             } else {
               target.query = base.query;
             }
           } else {
-            if (relative2.path[0] === "/") {
-              target.path = removeDotSegments(relative2.path);
+            if (relative3.path[0] === "/") {
+              target.path = removeDotSegments(relative3.path);
             } else {
               if ((base.userinfo !== void 0 || base.host !== void 0 || base.port !== void 0) && !base.path) {
-                target.path = "/" + relative2.path;
+                target.path = "/" + relative3.path;
               } else if (!base.path) {
-                target.path = relative2.path;
+                target.path = relative3.path;
               } else {
-                target.path = base.path.slice(0, base.path.lastIndexOf("/") + 1) + relative2.path;
+                target.path = base.path.slice(0, base.path.lastIndexOf("/") + 1) + relative3.path;
               }
               target.path = removeDotSegments(target.path);
             }
-            target.query = relative2.query;
+            target.query = relative3.query;
           }
           target.userinfo = base.userinfo;
           target.host = base.host;
@@ -3637,7 +3637,7 @@ var require_fast_uri = __commonJS({
         }
         target.scheme = base.scheme;
       }
-      target.fragment = relative2.fragment;
+      target.fragment = relative3.fragment;
       return target;
     }
     function equal(uriA, uriB, options) {
@@ -3808,7 +3808,7 @@ var require_fast_uri = __commonJS({
     var fastUri = {
       SCHEMES,
       normalize,
-      resolve: resolve2,
+      resolve: resolve3,
       resolveComponent,
       equal,
       serialize,
@@ -19583,7 +19583,7 @@ var Protocol = class {
           return;
         }
         const pollInterval = task2.pollInterval ?? this._options?.defaultTaskPollInterval ?? 1e3;
-        await new Promise((resolve2) => setTimeout(resolve2, pollInterval));
+        await new Promise((resolve3) => setTimeout(resolve3, pollInterval));
         options?.signal?.throwIfAborted();
       }
     } catch (error2) {
@@ -19600,7 +19600,7 @@ var Protocol = class {
    */
   request(request, resultSchema, options) {
     const { relatedRequestId, resumptionToken, onresumptiontoken, task, relatedTask } = options ?? {};
-    return new Promise((resolve2, reject) => {
+    return new Promise((resolve3, reject) => {
       const earlyReject = (error2) => {
         reject(error2);
       };
@@ -19678,7 +19678,7 @@ var Protocol = class {
           if (!parseResult.success) {
             reject(parseResult.error);
           } else {
-            resolve2(parseResult.data);
+            resolve3(parseResult.data);
           }
         } catch (error2) {
           reject(error2);
@@ -19939,12 +19939,12 @@ var Protocol = class {
       }
     } catch {
     }
-    return new Promise((resolve2, reject) => {
+    return new Promise((resolve3, reject) => {
       if (signal.aborted) {
         reject(new McpError(ErrorCode.InvalidRequest, "Request cancelled"));
         return;
       }
-      const timeoutId = setTimeout(resolve2, interval);
+      const timeoutId = setTimeout(resolve3, interval);
       signal.addEventListener("abort", () => {
         clearTimeout(timeoutId);
         reject(new McpError(ErrorCode.InvalidRequest, "Request cancelled"));
@@ -20814,12 +20814,12 @@ var StdioServerTransport = class {
     this.onclose?.();
   }
   send(message) {
-    return new Promise((resolve2) => {
+    return new Promise((resolve3) => {
       const json2 = serializeMessage(message);
       if (this._stdout.write(json2)) {
-        resolve2();
+        resolve3();
       } else {
-        this._stdout.once("drain", resolve2);
+        this._stdout.once("drain", resolve3);
       }
     });
   }
@@ -22983,8 +22983,11 @@ async function runSetActiveProject(input, cwd = process.cwd()) {
 }
 
 // src/tools/sync.ts
-import { mkdir as mkdir5, writeFile as writeFile6 } from "fs/promises";
-import { dirname as dirname6, join as join6 } from "path";
+import { existsSync } from "fs";
+import { mkdir as mkdir5, readFile as readFile6, readdir as readdir2, stat as stat2, writeFile as writeFile6 } from "fs/promises";
+import { homedir as homedir2 } from "os";
+import { dirname as dirname6, isAbsolute as isAbsolute2, join as join6, relative as relative2, resolve as resolve2 } from "path";
+import { fileURLToPath } from "url";
 var SYNC_STATUS_INPUT_SCHEMA = {
   type: "object",
   properties: {
@@ -23011,6 +23014,15 @@ var SYNC_REPAIR_INPUT_SCHEMA = {
       enum: ["status", "resume"],
       description: "Use 'resume' after resolving conflict snapshots locally."
     }
+  },
+  additionalProperties: false
+};
+var SYNC_DOCTOR_INPUT_SCHEMA = {
+  type: "object",
+  properties: {
+    include_logs: { type: "boolean" },
+    include_remote_config: { type: "boolean" },
+    lines: { type: "number", minimum: 1, maximum: 200 }
   },
   additionalProperties: false
 };
@@ -23093,6 +23105,73 @@ async function runSyncRepair(input, cwd = process.cwd()) {
   if (!status.ok) return status;
   return { ok: true, action: "status", status: status.status };
 }
+async function runSyncDoctor(input = {}, cwd = process.cwd()) {
+  const projectDir = resolve2(process.env["CLAUDE_PROJECT_DIR"] ?? cwd);
+  const hubRoot = await findHubRoot(projectDir);
+  const [plugin, auth] = await Promise.all([inspectPluginVersion(), getToken().catch(() => null)]);
+  const hub = hubRoot ? await readHub(hubRoot) : null;
+  const activeProject = hub?.active ? `${hub.active.ws_slug}/${hub.active.proj_slug}` : null;
+  const selected = hubRoot && hub ? selectDiagnosticProjects(hubRoot, hub.projects, activeProject, projectDir) : [];
+  const projects = await Promise.all(
+    selected.map(async (project) => {
+      const [status, manifestExists, lock] = await Promise.all([
+        readSyncStatus(project.absolute_path),
+        fileExists2(join6(project.absolute_path, ".conversion", "manifest.json")),
+        readJsonFile2(
+          join6(project.absolute_path, ".conversion", "sync", "project.lock", "owner.json")
+        )
+      ]);
+      return {
+        key: project.key,
+        path: project.absolute_path,
+        manifest_exists: manifestExists,
+        lock: lock ? {
+          pid: lock["pid"] ?? null,
+          version: lock["version"] ?? null,
+          heartbeat_at: lock["heartbeatAt"] ?? null
+        } : null,
+        status
+      };
+    })
+  );
+  const legacyHubLock = hubRoot && await fileExists2(join6(hubRoot, ".conversion", "sync", "project.lock", "owner.json")) ? await readJsonFile2(
+    join6(hubRoot, ".conversion", "sync", "project.lock", "owner.json")
+  ) : null;
+  const includeRemote = input.include_remote_config !== false;
+  const remoteConfig = includeRemote && auth ? await fetchSyncConfig(auth.token) : null;
+  const warnings = buildDoctorWarnings({
+    hubRoot,
+    projectCount: hub?.projects.length ?? 0,
+    selectedCount: selected.length,
+    plugin,
+    legacyHubLock,
+    remoteConfig,
+    projects
+  });
+  return {
+    ok: true,
+    cwd: projectDir,
+    plugin,
+    auth: {
+      authenticated: auth !== null,
+      email: auth?.email ?? null,
+      source: auth?.source ?? null,
+      expires_at: auth?.expiresAt ?? null
+    },
+    hub: hubRoot ? {
+      root: hubRoot,
+      project_count: hub?.projects.length ?? 0,
+      active_project: activeProject,
+      selected_count: selected.length,
+      selected_projects: selected.map((project) => project.key)
+    } : null,
+    remote_config: remoteConfig,
+    projects,
+    legacy_hub_lock: legacyHubLock,
+    warnings,
+    ...input.include_logs ? { logs: await readLogLines(Math.min(Math.max(input.lines ?? 30, 1), 200)) } : {}
+  };
+}
 async function runMaterializeProject(input, cwd = process.cwd()) {
   if (!input || typeof input.ws_slug !== "string" || typeof input.proj_slug !== "string") {
     return { ok: false, error: "bad_input", hint: "ws_slug and proj_slug are required." };
@@ -23166,6 +23245,165 @@ async function runMaterializeProject(input, cwd = process.cwd()) {
   } catch (err) {
     return mapSyncError(err);
   }
+}
+function runtimePluginRoot() {
+  const explicit = process.env["CLAUDE_PLUGIN_ROOT"];
+  if (explicit) return resolve2(explicit);
+  const here = dirname6(fileURLToPath(import.meta.url));
+  const candidates = [
+    join6(here, "..", ".."),
+    join6(here, "..", "..", "..")
+  ];
+  return resolve2(
+    candidates.find(
+      (candidate) => existsSync(join6(candidate, ".claude-plugin", "plugin.json"))
+    ) ?? candidates[0]
+  );
+}
+function conversionHome() {
+  return join6(homedir2(), ".conversion");
+}
+async function fileExists2(path) {
+  try {
+    await stat2(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+async function readJsonFile2(path) {
+  try {
+    return JSON.parse(await readFile6(path, "utf8"));
+  } catch {
+    return null;
+  }
+}
+function diagnosticPluginPath() {
+  return join6(runtimePluginRoot(), ".claude-plugin", "plugin.json");
+}
+async function inspectPluginVersion() {
+  const root = runtimePluginRoot();
+  const installed = await readJsonFile2(diagnosticPluginPath());
+  const expected = await findMarketplacePluginVersion();
+  const installedVersion = typeof installed?.version === "string" ? installed.version : null;
+  return {
+    root,
+    installed_version: installedVersion,
+    expected_version: expected,
+    stale: semverGreater(expected, installedVersion)
+  };
+}
+async function findMarketplacePluginVersion() {
+  const explicitPath = process.env["CONVERSION_PLUGIN_MARKETPLACE_PATH"];
+  if (explicitPath) return readMarketplacePluginVersion(explicitPath);
+  let entries;
+  const marketplaceRoot = join6(homedir2(), ".claude", "plugins", "marketplaces");
+  try {
+    entries = await readdir2(marketplaceRoot);
+  } catch {
+    return null;
+  }
+  for (const entry of entries) {
+    const version2 = await readMarketplacePluginVersion(
+      join6(marketplaceRoot, entry, ".claude-plugin", "marketplace.json")
+    );
+    if (version2) return version2;
+  }
+  return null;
+}
+async function readMarketplacePluginVersion(path) {
+  const parsed = await readJsonFile2(path);
+  const entry = parsed?.plugins?.find((plugin) => plugin.name === "conversion-agent");
+  return typeof entry?.version === "string" ? entry.version : null;
+}
+function parseSemver(value) {
+  const match = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/u.exec(value ?? "");
+  if (!match) return null;
+  return [
+    Number.parseInt(match[1], 10),
+    Number.parseInt(match[2], 10),
+    Number.parseInt(match[3], 10)
+  ];
+}
+function semverGreater(a, b) {
+  const left = parseSemver(a);
+  const right = parseSemver(b);
+  if (!left || !right) return false;
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index] > right[index]) return true;
+    if (left[index] < right[index]) return false;
+  }
+  return false;
+}
+function isWithinPath(candidate, parent) {
+  const rel = relative2(parent, candidate);
+  return rel === "" || !rel.startsWith("..") && !isAbsolute2(rel);
+}
+function selectDiagnosticProjects(hubRoot, projects, activeProject, projectDir) {
+  const normalizedHub = resolve2(hubRoot);
+  const selected = [];
+  for (const project of projects) {
+    const absolutePath = resolve2(join6(hubRoot, ...project.path.split("/")));
+    const openedHub = projectDir === normalizedHub;
+    const openedProject = isWithinPath(projectDir, absolutePath);
+    if (!openedHub && !openedProject) continue;
+    selected.push({
+      ...project,
+      key: `${project.ws_slug}/${project.proj_slug}`,
+      absolute_path: absolutePath
+    });
+  }
+  selected.sort((a, b) => {
+    const activeA = a.key === activeProject ? 0 : 1;
+    const activeB = b.key === activeProject ? 0 : 1;
+    return activeA - activeB || a.key.localeCompare(b.key);
+  });
+  return selected;
+}
+async function fetchSyncConfig(token) {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/v1/sync/config`, {
+      headers: { authorization: `Bearer ${token}`, accept: "application/json" }
+    });
+    return {
+      ok: res.ok,
+      status: res.status,
+      body: await res.json().catch(() => null)
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      status: null,
+      error: err instanceof Error ? err.message : String(err)
+    };
+  }
+}
+async function readLogLines(lines) {
+  try {
+    const raw = await readFile6(join6(conversionHome(), "logs", "sync-monitor.log"), "utf8");
+    return raw.trimEnd().split("\n").slice(-lines);
+  } catch {
+    return [];
+  }
+}
+function buildDoctorWarnings(input) {
+  const warnings = [];
+  if (!input.hubRoot) warnings.push("not_in_conversion_hub");
+  if (input.hubRoot && input.projectCount > 0 && input.selectedCount === 0) {
+    warnings.push("no_selected_project");
+  }
+  if (input.plugin.stale) warnings.push("stale_plugin");
+  if (input.legacyHubLock) warnings.push("legacy_hub_lock_present");
+  const mode = input.remoteConfig?.body?.mode;
+  if (mode === "observe") warnings.push("remote_mode_observe");
+  for (const project of input.projects) {
+    if (!project.manifest_exists) warnings.push(`missing_manifest:${project.key}`);
+    if (project.status?.paused) warnings.push(`paused:${project.key}`);
+    if (project.status?.lastError) {
+      warnings.push(`last_error:${project.key}:${project.status.lastError}`);
+    }
+  }
+  return warnings;
 }
 async function resolveLocalProject(input, cwd) {
   const hubRoot = await findHubRoot(cwd);
@@ -23330,6 +23568,11 @@ function buildServer() {
         inputSchema: SYNC_STATUS_INPUT_SCHEMA
       },
       {
+        name: "sync_doctor",
+        description: "Diagnoses the plugin sync monitor: selected projects, auth source, plugin version freshness, remote mode, locks, status files, and recent logs.",
+        inputSchema: SYNC_DOCTOR_INPUT_SCHEMA
+      },
+      {
         name: "sync_pause",
         description: "Pauses local sync for the active or specified materialized project.",
         inputSchema: SYNC_PAUSE_INPUT_SCHEMA
@@ -23416,6 +23659,9 @@ function buildServer() {
         result = await runSyncStatus(
           safeArgs
         );
+        break;
+      case "sync_doctor":
+        result = await runSyncDoctor(safeArgs);
         break;
       case "sync_pause":
         result = await runSyncPause(

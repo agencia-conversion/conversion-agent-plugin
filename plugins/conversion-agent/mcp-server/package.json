@@ -1,6 +1,6 @@
 {
   "name": "@agenciaconversion/mcp-server",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "MCP stdio server shipped inside the Conversion Agent plugin. Bridges Claude Code to the Conversion backend.",
   "license": "UNLICENSED",
   "type": "module",
