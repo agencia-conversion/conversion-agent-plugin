@@ -401,8 +401,23 @@ async function downloadCanonicalBlob(auth, workspaceId, sha) {
     if (!response.ok) {
         throw new Error(`blob_http_${response.status}:${sha.slice(0, 12)}`);
     }
+    const content = new Uint8Array(await response.arrayBuffer());
+    // Integrity gate: canonical-sync returns the blob's stored CAS bytes
+    // byte-exact, so they MUST hash back to the requested sha. An older
+    // backend (or a middlebox dropping ?variant=canonical-sync) would serve
+    // the per-user WATERMARKED variant instead — the exact bytes that used to
+    // mirror to disk and feed the phantom-commit pull loop. The scan-side
+    // strip (canonicalizeContent) already neutralizes the markdown frame, but
+    // this gate is the general backstop: it fails loudly (blob_hash_mismatch,
+    // mirroring the upload guard) for anything the strip is not an exact
+    // inverse of, instead of writing divergent bytes and looping next cycle.
+    const actual = hashBytes(content);
+    if (actual !== sha) {
+        throw new Error(`blob_hash_mismatch:${sha.slice(0, 12)}:got_${actual.slice(0, 12)}:` +
+            `backend_nao_devolveu_bytes_canonicos`);
+    }
     return {
-        content: new Uint8Array(await response.arrayBuffer()),
+        content,
         mime: response.headers.get("content-type") ?? "application/octet-stream",
     };
 }

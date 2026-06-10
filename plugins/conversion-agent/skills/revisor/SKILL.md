@@ -70,9 +70,10 @@ Execute the five phases in order:
 ## 4. Pré-requisito: estar num project
 
 Antes de gravar o YAML revisado, confirme que o CWD é um project-root
-(contém `.conversion/manifest.json`). Se não for, PARE e peça ao usuário
-para rodar `conversion pull <ws>/<proj>`. O path de entrada é relativo
-ao CWD (ex: `conteudo/<slug>.yaml`).
+(contém `.conversion/manifest.json`). Se não for, PARE e materialize o
+project pela tool MCP `materialize_project` (cria o `.conversion-hub.json`
+e baixa os arquivos). O path de entrada é relativo ao CWD
+(ex: `conteudo/<slug>.yaml`).
 
 ## 5. Output (MANDATORY file update + push)
 
@@ -85,13 +86,14 @@ sinalizar que o arquivo já passou pela revisão editorial. O campo
 `workflow.status` permanece conforme a regra (rascunho ou finalizado,
 responsabilidade do `/redator`).
 
-**Push implícito + URL web**: depois do Write/Edit, chame a ferramenta
-Bash: `cd <project-root> && conversion push`. Extraia a URL web da saída
-do push (formato
-`https://conversion-skills.vercel.app/app/p/<ws_uuid>/<proj_uuid>/<path>`).
+**Push implícito + URL web**: grave o YAML revisado pela tool MCP
+`project_save_and_url` (passando `ws_slug` + `proj_slug` e o path relativo).
+Ela faz commit + push atomicamente e retorna a URL web (formato
+`https://conversion-skills.vercel.app/app/p/<ws_uuid>/<proj_uuid>/<path>`);
+use essa URL diretamente.
 
-Se `conversion push` falhar (ex: 409 conflict), avise o usuário e sugira
-`conversion pull` + re-executar.
+Se `project_save_and_url` falhar (ex: 409 conflict), avise o usuário e
+sugira rematerializar o project (`materialize_project`) + re-executar.
 
 Respond with a short report (never dump the article):
 
