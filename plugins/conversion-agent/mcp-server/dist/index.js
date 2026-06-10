@@ -13124,7 +13124,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
             })));
           }
         }
-
+        
         if (${id}.value === undefined) {
           if (${k} in input) {
             newResult[${k}] = undefined;
@@ -13132,7 +13132,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
         } else {
           newResult[${k}] = ${id}.value;
         }
-
+        
       `);
       } else {
         doc.write(`
@@ -13142,7 +13142,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
             path: iss.path ? [${k}, ...iss.path] : [${k}]
           })));
         }
-
+        
         if (${id}.value === undefined) {
           if (${k} in input) {
             newResult[${k}] = undefined;
@@ -13150,7 +13150,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
         } else {
           newResult[${k}] = ${id}.value;
         }
-
+        
       `);
       }
     }
@@ -21088,7 +21088,7 @@ var ProjectNotMaterializedError = class extends Error {
   proj_slug;
   constructor(ws_slug, proj_slug) {
     super(
-      `Project '${ws_slug}/${proj_slug}' n\xE3o est\xE1 materializado neste hub. Rode \`conversion pull ${ws_slug}/${proj_slug}\` primeiro.`
+      `Project '${ws_slug}/${proj_slug}' n\xE3o est\xE1 materializado neste hub. Use a ferramenta \`materialize_project\` primeiro.`
     );
     this.name = "ProjectNotMaterializedError";
     this.ws_slug = ws_slug;
@@ -21206,7 +21206,7 @@ async function setActiveProject(hubRoot, ws_slug, proj_slug) {
   const current = await readHub(hubRoot);
   if (!current) {
     throw new Error(
-      `Hub config inv\xE1lido em ${hubRoot}. Rode \`conversion init\` primeiro.`
+      `Hub config inv\xE1lido em ${hubRoot}. Use a ferramenta \`materialize_project\` primeiro.`
     );
   }
   const exists = current.projects.some(
@@ -21257,7 +21257,7 @@ var NotAuthenticatedError = class extends Error {
   code = "not_authenticated";
   constructor() {
     super(
-      "No Conversion credential found. Run `conversion login` in your terminal first."
+      "No Conversion credential found. Use the `auth_login_start` MCP tool (then `auth_login_poll`) first."
     );
     this.name = "NotAuthenticatedError";
   }
@@ -21265,7 +21265,7 @@ var NotAuthenticatedError = class extends Error {
 var SessionExpiredError = class extends Error {
   code = "session_expired";
   constructor() {
-    super("Session expired or revoked. Run `conversion login` to renew.");
+    super("Session expired or revoked. Use the `auth_login_start` MCP tool (then `auth_login_poll`) to renew.");
     this.name = "SessionExpiredError";
   }
 };
@@ -21419,7 +21419,7 @@ async function resolveProjectScope(input, cwd = process.cwd()) {
     return {
       ok: false,
       error: "not_in_hub",
-      hint: "N\xE3o encontrei .conversion-hub.json. Certifique-se de abrir o Claude Code dentro de um hub (pasta com `conversion init` rodado)."
+      hint: "N\xE3o encontrei .conversion-hub.json. Certifique-se de abrir o Claude Code dentro de um hub (pasta materializada com a ferramenta `materialize_project`)."
     };
   }
   const resolved = await resolveProjectFromHub(hubRoot, ws, proj);
@@ -21427,7 +21427,7 @@ async function resolveProjectScope(input, cwd = process.cwd()) {
     return {
       ok: false,
       error: "project_not_in_hub",
-      hint: `Project '${ws}/${proj}' n\xE3o est\xE1 neste hub. Rode \`conversion pull ${ws}/${proj}\` primeiro.`
+      hint: `Project '${ws}/${proj}' n\xE3o est\xE1 neste hub. Use a ferramenta \`materialize_project\` primeiro.`
     };
   }
   return {
@@ -21501,7 +21501,7 @@ function mapError(err) {
     return {
       ok: false,
       error: err.code,
-      hint: "Run `conversion login` in your terminal first."
+      hint: "Use the `auth_login_start` MCP tool (then `auth_login_poll`) first."
     };
   }
   if (err instanceof SessionExpiredError) {
@@ -21580,7 +21580,7 @@ function mapError2(err) {
     return {
       ok: false,
       error: err.code,
-      hint: "Run `conversion login` in your terminal first."
+      hint: "Use the `auth_login_start` MCP tool (then `auth_login_poll`) first."
     };
   }
   if (err instanceof SessionExpiredError) {
@@ -21714,14 +21714,14 @@ function mapError3(err, skill) {
     return {
       ok: false,
       error: err.code,
-      hint: "Run `conversion login` in your terminal first."
+      hint: "Use the `auth_login_start` MCP tool (then `auth_login_poll`) first."
     };
   }
   if (err instanceof SessionExpiredError) {
     return {
       ok: false,
       error: err.code,
-      hint: "Run `conversion login` to renew your session."
+      hint: "Use the `auth_login_start` MCP tool (then `auth_login_poll`) to renew your session."
     };
   }
   if (err instanceof RateLimitedError) {
@@ -22109,7 +22109,7 @@ async function runProjectSave(input, context) {
     return {
       ok: false,
       error: "not_authenticated",
-      hint: "Run `conversion login` in a terminal first."
+      hint: "Use the `auth_login_start` MCP tool (then `auth_login_poll`) first."
     };
   }
   const { wsId, projId, absoluteProjectRoot } = context;
@@ -22118,7 +22118,7 @@ async function runProjectSave(input, context) {
     return {
       ok: false,
       error: "invalid_manifest",
-      hint: "`.conversion/manifest.json` ausente ou malformado no project materializado. Rode `conversion pull` novamente."
+      hint: "`.conversion/manifest.json` ausente ou malformado no project materializado. Use a ferramenta `materialize_project` novamente."
     };
   }
   const mime = inferMime(input.path);
@@ -22205,14 +22205,14 @@ async function runProjectSave(input, context) {
       return {
         ok: false,
         error: "conflict",
-        hint: "The project has moved since your manifest; run `conversion pull` locally and try again.",
+        hint: "The project has moved since your manifest; use the `materialize_project` MCP tool and try again.",
         server_head: conflict.server_head
       };
     } catch {
       return {
         ok: false,
         error: "conflict",
-        hint: "The project has moved since your manifest; run `conversion pull` locally and try again.",
+        hint: "The project has moved since your manifest; use the `materialize_project` MCP tool and try again.",
         server_head: null
       };
     }
@@ -22434,7 +22434,7 @@ async function runProjectSaveBatch(input, cwd = process.cwd()) {
     return {
       ok: false,
       error: "not_authenticated",
-      hint: "Run `conversion login` in a terminal first."
+      hint: "Use the `auth_login_start` MCP tool (then `auth_login_poll`) first."
     };
   }
   const scope = await resolveProjectScope(input, cwd);
@@ -22445,7 +22445,7 @@ async function runProjectSaveBatch(input, cwd = process.cwd()) {
     return {
       ok: false,
       error: "invalid_manifest",
-      hint: "`.conversion/manifest.json` ausente ou malformado no project materializado. Rode `conversion pull` novamente."
+      hint: "`.conversion/manifest.json` ausente ou malformado no project materializado. Use a ferramenta `materialize_project` novamente."
     };
   }
   const processed = [];
@@ -22516,7 +22516,7 @@ async function runProjectSaveBatch(input, cwd = process.cwd()) {
     return {
       ok: false,
       error: "conflict",
-      hint: "Project head moved; run `conversion pull` and retry.",
+      hint: "Project head moved; use the `materialize_project` MCP tool and retry.",
       server_head: serverHead
     };
   }
@@ -22624,10 +22624,10 @@ async function runProxySerper(input) {
 }
 function mapProxyError(err) {
   if (err instanceof NotAuthenticatedError) {
-    return { ok: false, error: err.code, hint: "Run `conversion login` first." };
+    return { ok: false, error: err.code, hint: "Use the `auth_login_start` MCP tool (then `auth_login_poll`) first." };
   }
   if (err instanceof SessionExpiredError) {
-    return { ok: false, error: err.code, hint: "Run `conversion login` to renew." };
+    return { ok: false, error: err.code, hint: "Use the `auth_login_start` MCP tool (then `auth_login_poll`) to renew." };
   }
   if (err instanceof RateLimitedError) {
     return {
@@ -22767,7 +22767,7 @@ function mapError4(err) {
     return {
       ok: false,
       error: err.code,
-      hint: "Run `conversion login` in your terminal first."
+      hint: "Use the `auth_login_start` MCP tool (then `auth_login_poll`) first."
     };
   }
   if (err instanceof SessionExpiredError) {
@@ -22882,14 +22882,14 @@ function mapError5(err) {
     return {
       ok: false,
       error: err.code,
-      hint: "Run `conversion login` in your terminal first."
+      hint: "Use the `auth_login_start` MCP tool (then `auth_login_poll`) first."
     };
   }
   if (err instanceof SessionExpiredError) {
     return {
       ok: false,
       error: err.code,
-      hint: "Run `conversion login` to renew your session."
+      hint: "Use the `auth_login_start` MCP tool (then `auth_login_poll`) to renew your session."
     };
   }
   if (err instanceof RateLimitedError) {
@@ -22964,7 +22964,7 @@ async function runSetActiveProject(input, cwd = process.cwd()) {
     return {
       ok: false,
       error: "not_in_hub",
-      hint: "N\xE3o encontrei .conversion-hub.json. Certifique-se de abrir o Claude Code dentro de um hub (pasta com `conversion init` rodado)."
+      hint: "N\xE3o encontrei .conversion-hub.json. Certifique-se de abrir o Claude Code dentro de um hub (pasta materializada com a ferramenta `materialize_project`)."
     };
   }
   try {
@@ -22979,7 +22979,7 @@ async function runSetActiveProject(input, cwd = process.cwd()) {
       return {
         ok: false,
         error: "project_not_in_hub",
-        hint: `Project '${ws}/${proj}' n\xE3o est\xE1 materializado neste hub. Rode \`conversion pull ${ws}/${proj}\` primeiro.`
+        hint: `Project '${ws}/${proj}' n\xE3o est\xE1 materializado neste hub. Use a ferramenta \`materialize_project\` primeiro.`
       };
     }
     const detail = err instanceof Error ? err.message : String(err);
@@ -23549,12 +23549,12 @@ function buildServer() {
       },
       {
         name: "get_active_project",
-        description: "Reads the project pinned as 'active' inside the current hub (`<hub>/.conversion-hub.json#active`). Call this FIRST before asking the user which project to work on \u2014 when a CLI user has already pinned one with `conversion use`, follow it without asking. Returns `{active: {ws_slug, proj_slug, ws_id, proj_id}}` or `{active: null}`.",
+        description: "Reads the project pinned as 'active' inside the current hub (`<hub>/.conversion-hub.json#active`). Call this FIRST before asking the user which project to work on \u2014 when one has already been pinned via `set_active_project`, follow it without asking. Returns `{active: {ws_slug, proj_slug, ws_id, proj_id}}` or `{active: null}`.",
         inputSchema: GET_ACTIVE_PROJECT_INPUT_SCHEMA
       },
       {
         name: "set_active_project",
-        description: "Pins a project as active inside the current hub. The pair `(ws_slug, proj_slug)` must already be materialized \u2014 if not, returns `project_not_in_hub` with a hint to run `conversion pull <ws>/<proj>`. Use when the user explicitly switches projects mid-session.",
+        description: "Pins a project as active inside the current hub. The pair `(ws_slug, proj_slug)` must already be materialized \u2014 if not, returns `project_not_in_hub` with a hint to use the `materialize_project` MCP tool. Use when the user explicitly switches projects mid-session.",
         inputSchema: SET_ACTIVE_PROJECT_INPUT_SCHEMA
       },
       {
