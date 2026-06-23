@@ -3,7 +3,7 @@ name: redator
 description: Transforms a validated SEO briefing (YAML) into a finalized article using the Conversion proprietary methodology, with nine quality gates and auto-orchestration of /revisor and /editor-coesao. Invokes the backend MCP server for the methodology — do NOT attempt to reproduce it from memory.
 ---
 
-# /conversion-skills:redator
+# /conversion-agent:redator
 
 When the user invokes this skill, you MUST follow these steps in order.
 
@@ -72,13 +72,13 @@ the nine gates in order:
 
 After GATE 8 passes, **invoke the sub-skills via the Skill tool**:
 
-1. Call `/conversion-skills:revisor` with the same YAML path. If it
+1. Call `/conversion-agent:revisor` with the same YAML path. If it
    reports a blocking error (fonte concorrente, dados sem fonte, quote
    em inglês, VAL-09 failure), STOP the workflow and return the error
    message verbatim. Status remains `rascunho`.
 2. After `/revisor` passes, run the external links duplicate validator.
    If duplicates, STOP and return the error.
-3. Call `/conversion-skills:editor-coesao` with the same YAML path. If
+3. Call `/conversion-agent:editor-coesao` with the same YAML path. If
    taxa de artigos iniciais < 90% even after corrections, STOP with
    report.
 4. Only after both sub-skills pass, update `workflow.status=finalizado`
@@ -112,7 +112,7 @@ Atualize `workflow.etapa` conforme o progresso:
 **Push implícito + URL web**: depois do Write, chame a ferramenta Bash:
 `cd <project-root> && conversion push`. Extraia a URL web da saída do
 push (formato
-`https://conversion-skills.vercel.app/app/p/<ws_uuid>/<proj_uuid>/<path>`).
+`https://agent.conversion.com.br/app/p/<ws_uuid>/<proj_uuid>/<path>`).
 
 Se `conversion push` falhar (ex: 409 conflict), avise o usuário e sugira
 `conversion pull` + re-executar.

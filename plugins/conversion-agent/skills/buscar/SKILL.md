@@ -6,7 +6,7 @@ description: >-
   Retorna lista clicável de slugs com tipo + status.
 ---
 
-# /conversion-skills:buscar <termo>
+# /conversion-agent:buscar <termo>
 
 Atalho pra MCP tool `conversion-context:search_project`.
 

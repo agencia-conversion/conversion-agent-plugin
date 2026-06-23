@@ -3,7 +3,7 @@ name: brain-update
 description: Consolida aprendizados dos últimos entregáveis aprovados e propõe atualizações à memória do projeto (brain). Use para atualizar o tom de voz, registrar decisões editoriais, estender o glossário, capturar aprendizados, refinar personas, ou consolidar qualquer padrão recorrente observado. Grava em brain/_pending.md para revisão humana — NÃO altera o brain direto. Invocada automaticamente pela main session em Fase 4 do orquestrador (aprovação de entregável); também pode ser chamada manualmente para consolidar padrões acumulados.
 ---
 
-# /conversion-skills:brain-update
+# /conversion-agent:brain-update
 
 Esta skill consolida padrões observados nos últimos entregáveis aprovados e
 propõe **atualizações à memória do projeto** (os 5 arquivos de `brain/`)
@@ -18,7 +18,7 @@ perguntar. Custo é baixo — propostas ficam em `brain/_pending.md` e o
 humano revisa quando quiser. Zero propostas é um resultado válido; se a
 skill não detectar padrão novo, o reporte confirma isso e o fluxo segue.
 
-**Disparo manual.** Pode ser invocada direto pelo humano (`/conversion-skills:brain-update`)
+**Disparo manual.** Pode ser invocada direto pelo humano (`/conversion-agent:brain-update`)
 para consolidar padrões acumulados em múltiplos entregáveis já
 aprovados — útil ao final de uma bateria de trabalho ou quando o brain
 está "atrasado" em relação ao output recente.

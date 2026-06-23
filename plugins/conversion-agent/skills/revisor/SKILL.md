@@ -3,9 +3,9 @@ name: revisor
 description: Applies the Conversion Gate Validation Checkpoint and the full QA/VAL/LN checklist over an article draft YAML. Invoked automatically by /redator in GATE 9.1 — should not be invoked manually. Invokes the backend MCP server for the methodology — do NOT attempt to reproduce it from memory.
 ---
 
-# /conversion-skills:revisor
+# /conversion-agent:revisor
 
-This skill is normally invoked as a sub-skill by `/conversion-skills:redator`
+This skill is normally invoked as a sub-skill by `/conversion-agent:redator`
 in GATE 9.1. If the user invokes it directly, apply the methodology anyway
 and note in the output that the canonical flow is via `/redator`.
 
@@ -89,7 +89,7 @@ responsabilidade do `/redator`).
 **Push implícito + URL web**: grave o YAML revisado pela tool MCP
 `project_save_and_url` (passando `ws_slug` + `proj_slug` e o path relativo).
 Ela faz commit + push atomicamente e retorna a URL web (formato
-`https://conversion-skills.vercel.app/app/p/<ws_uuid>/<proj_uuid>/<path>`);
+`https://agent.conversion.com.br/app/p/<ws_uuid>/<proj_uuid>/<path>`);
 use essa URL diretamente.
 
 Se `project_save_and_url` falhar (ex: 409 conflict), avise o usuário e

@@ -8,7 +8,7 @@ description: >-
   rodar uma skill que já existe — só pra autoria de uma nova.
 ---
 
-# /conversion-skills:skill-author
+# /conversion-agent:skill-author
 
 Esta skill ajuda **membros não-técnicos da Conversion** a criar skills novas
 sem editar TypeScript. Você (main session) age como **autor pareado**:

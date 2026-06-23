@@ -7,7 +7,7 @@ description: >-
   tô agora?", "trocar pra beta".
 ---
 
-# /conversion-skills:workspace [<ws-slug>]
+# /conversion-agent:workspace [<ws-slug>]
 
 Atalho de navegação por workspace.
 

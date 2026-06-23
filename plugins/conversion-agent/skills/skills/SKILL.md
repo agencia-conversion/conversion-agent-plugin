@@ -3,7 +3,7 @@ name: skills
 description: Lista todas as skills do plugin Conversion Agent com descrição curta. Use quando o usuário perguntar "que comandos existem?", "o que você sabe fazer?", "como começo?", ou no início de uma sessão pra orientar fluxos disponíveis.
 ---
 
-# /conversion-skills:skills
+# /conversion-agent:skills
 
 Catálogo das skills disponíveis no plugin.
 

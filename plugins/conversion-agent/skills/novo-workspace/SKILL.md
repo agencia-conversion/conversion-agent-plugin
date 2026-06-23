@@ -3,7 +3,7 @@ name: novo-workspace
 description: Cria um novo workspace. Pode ser invocada com args (`/novo-workspace acme --name "Acme"`) ou sem args (Consultor pergunta slug + nome em uma linha cada). Use quando o usuário disser "cria um workspace pra X", "novo cliente", "workspace pra agência Y".
 ---
 
-# /conversion-skills:novo-workspace [<slug>] [--name "Nome"]
+# /conversion-agent:novo-workspace [<slug>] [--name "Nome"]
 
 Atalho pro `conversion ws create`.
 
@@ -15,7 +15,7 @@ Atalho pro `conversion ws create`.
    - Nome: 1-200 chars, qualquer charset razoável.
 3. Execute Bash. Se 409 (slug duplicado): "Slug `<slug>` já existe. Quer outro nome?".
 4. Sucesso: confirme em uma linha com URL admin pra editar:
-   *"✓ Workspace `<slug>` criado. Editar: https://conversion-skills.vercel.app/admin/ws/<id>"*.
+   *"✓ Workspace `<slug>` criado. Editar: https://agent.conversion.com.br/admin/ws/<id>"*.
 5. Sugira próximo passo: `/novo-projeto <slug>/<projeto-slug> --name "Nome"` se o usuário pareceu pronto pra criar project também.
 
 ## Regras

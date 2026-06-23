@@ -8,7 +8,7 @@ description: >-
   orientar trabalho.
 ---
 
-# /conversion-skills:whereami
+# /conversion-agent:whereami
 
 Snapshot consolidado do contexto.
 

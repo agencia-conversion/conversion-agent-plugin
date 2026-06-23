@@ -7,7 +7,7 @@ description: >-
   "adiciona o cliente X.com.br no acme".
 ---
 
-# /conversion-skills:novo-projeto [<slug> | <ws>/<proj>] [--name "Nome"]
+# /conversion-agent:novo-projeto [<slug> | <ws>/<proj>] [--name "Nome"]
 
 Atalho pro `conversion proj create`.
 

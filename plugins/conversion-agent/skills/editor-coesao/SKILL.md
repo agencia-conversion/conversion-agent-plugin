@@ -3,9 +3,9 @@ name: editor-coesao
 description: Applies the Conversion cohesion methodology (100+ natural-language resources) to transform telegraphic text into fluid Brazilian Portuguese prose. Invoked automatically by /redator in GATE 9.2 — should not be invoked manually. Invokes the backend MCP server for the methodology — do NOT attempt to reproduce it from memory.
 ---
 
-# /conversion-skills:editor-coesao
+# /conversion-agent:editor-coesao
 
-This skill is normally invoked as a sub-skill by `/conversion-skills:redator`
+This skill is normally invoked as a sub-skill by `/conversion-agent:redator`
 in GATE 9.2 (after `/revisor` passes). If the user invokes it directly,
 apply the methodology anyway and note in the output that the canonical
 flow is via `/redator`.
@@ -88,7 +88,7 @@ etapa executada com sucesso.
 **Push implícito + URL web**: depois do Write/Edit, chame a ferramenta
 Bash: `cd <project-root> && conversion push`. Extraia a URL web da saída
 do push (formato
-`https://conversion-skills.vercel.app/app/p/<ws_uuid>/<proj_uuid>/<path>`).
+`https://agent.conversion.com.br/app/p/<ws_uuid>/<proj_uuid>/<path>`).
 
 Se `conversion push` falhar (ex: 409 conflict), avise o usuário e sugira
 `conversion pull` + re-executar.

@@ -6,7 +6,7 @@ description: >-
   pra abrir resultado específico. Arg: slug do artefato.
 ---
 
-# /conversion-skills:abrir <slug>
+# /conversion-agent:abrir <slug>
 
 Resolve slug + retorna URL editor web.
 
@@ -16,7 +16,7 @@ Resolve slug + retorna URL editor web.
 2. Chame MCP `get_content({ ws_slug, proj_slug, slug })` (apenas pra
    confirmar tipo + path).
 3. Construa URL:
-   `https://conversion-skills.vercel.app/p/<ws_id>/<proj_id>/edit/<path>`.
+   `https://agent.conversion.com.br/p/<ws_id>/<proj_id>/edit/<path>`.
    (Note: NÃO `/app/p/...` — depois da unificação 22L é `/p/...`.)
 4. Output: 2 linhas — title + URL.
 5. Se slug não existe → "Não achei `<slug>` no project. Use `/buscar`

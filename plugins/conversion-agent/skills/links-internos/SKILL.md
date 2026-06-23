@@ -3,7 +3,7 @@ name: links-internos
 description: Sugere links internos via WebSearch site:<dominio>. Modos receive/send, cardinalidades single (com histórico cumulativo) e batch (snapshot). Standalone ou sub-skill de /briefing FASE 2.4. Invokes the backend MCP server for the methodology — do NOT attempt to reproduce it from memory.
 ---
 
-# /conversion-skills:links-internos
+# /conversion-agent:links-internos
 
 Quando o usuário invoca esta skill, siga os passos em ordem.
 
