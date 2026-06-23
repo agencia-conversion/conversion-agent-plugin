@@ -3,11 +3,11 @@
 Plugin oficial da **Agência Conversion** que liga o Claude Code à
 metodologia proprietária de SEO da empresa. A metodologia em si vive no
 backend autenticado (`https://agent.conversion.com.br`); este repositório
-contém apenas o manifest, os stubs de skill e a referência ao MCP server
-publicado no NPM.
+contém apenas o manifest, os stubs de skill e o MCP server empacotado.
 
-> Este repo é gerado automaticamente a partir do monorepo privado.
-> Mudanças manuais aqui serão sobrescritas — abra um issue.
+> O conteúdo de plugin (manifests, skills, mcp-server) é sincronizado
+> automaticamente a partir do monorepo privado. Para correções neste
+> `README.md`, abra um issue ou PR — ele é mantido manualmente.
 
 ---
 
@@ -16,6 +16,11 @@ publicado no NPM.
 - E-mail corporativo `@conversion.com.br` ativado pelo admin.
 - **Node.js 20+** (`node --version` deve mostrar `v20.x` ou superior).
 - **Claude Code CLI** instalado (https://claude.com/code).
+
+> Você **não** precisa de nenhum CLI da Conversion. O antigo
+> `@agenciaconversion/cli` foi **descontinuado** — `npm install -g
+> @agenciaconversion/cli` retorna `404`. Tudo roda pelo plugin do Claude Code,
+> e o login acontece sozinho na primeira skill.
 
 ## Instalação no Mac
 
@@ -27,33 +32,20 @@ brew link --overwrite node@20
 node --version
 ```
 
-### 2. CLI da Conversion
-
-```bash
-npm install -g @agenciaconversion/cli
-conversion login
-```
-
-O `conversion login` abre o navegador. Digite seu e-mail corporativo,
-clique no link recebido e o token vai pro **macOS Keychain**.
-
-Confira:
-
-```bash
-conversion whoami
-```
-
-### 3. Plugin no Claude Code
+### 2. Plugin no Claude Code
 
 Dentro do Claude Code:
 
 ```
 /plugin marketplace add agencia-conversion/conversion-agent-plugin
-/plugin install conversion-agent
+/plugin install conversion-agent@conversion-agent
 /reload-plugins
 ```
 
-### 4. **Ative auto-update agora** (recomendado)
+O Claude Code baixa o plugin e inicia o MCP server automaticamente
+(empacotado no plugin — não baixa nada de registry no startup).
+
+### 3. **Ative auto-update agora** (recomendado)
 
 Logo após instalar, dentro do Claude Code rode:
 
@@ -64,21 +56,24 @@ Logo após instalar, dentro do Claude Code rode:
 → aba **Marketplaces** → selecione **conversion-agent** → toggle
 **Enable auto-update**.
 
-A cada vez que o Claude Code abrir, ele checa se houve commit novo no
-repo público e atualiza o plugin sozinho. Sem isso, você precisaria
-rodar `/plugin marketplace update conversion-agent` manualmente para
-receber correções.
+A cada vez que o Claude Code abrir, ele checa se houve commit novo e
+atualiza o plugin sozinho. Sem isso, você precisaria rodar
+`/plugin marketplace update conversion-agent` manualmente.
 
-### 5. Smoke test
+### 4. Primeiro uso (o login acontece aqui, sozinho)
 
-Abra o Claude Code numa pasta de project (após `conversion pull
-<ws>/<proj>`) e digite:
+Descreva uma pauta (ou rode `/conversion-agent:conversion-start`). Na
+**primeira** chamada, o orquestrador percebe que falta sessão e dispara um
+**magic link** para o seu e-mail `@conversion.com.br`:
+
+- Clique no link; a página confirma e fecha sozinha.
+- A sessão é salva automaticamente. **Você não roda comando de login.**
+
+Confira o contexto ativo:
 
 ```
 /conversion-agent:whereami
 ```
-
-Deve listar workspace + project ativo.
 
 ---
 
@@ -99,40 +94,17 @@ Reabra o terminal pra `node` aparecer no `PATH`.
 
 Baixe o instalador `.exe` em https://claude.com/code.
 
-### 3. CLI da Conversion
-
-```powershell
-npm install -g @agenciaconversion/cli
-conversion --version
-```
-
-> Se aparecer `'conversion' is not recognized`, feche e reabra o terminal
-> pra atualizar o `PATH`. Se persistir, rode `npm bin -g` e adicione o
-> diretório retornado ao `PATH` manualmente.
-
-### 4. Login
-
-```powershell
-conversion login
-```
-
-Abre o navegador padrão. Token salvo no **Windows Credential Manager**.
-
-```powershell
-conversion whoami
-```
-
-### 5. Plugin no Claude Code
+### 3. Plugin no Claude Code
 
 Idêntico ao Mac:
 
 ```
 /plugin marketplace add agencia-conversion/conversion-agent-plugin
-/plugin install conversion-agent
+/plugin install conversion-agent@conversion-agent
 /reload-plugins
 ```
 
-### 6. **Ative auto-update agora** (recomendado)
+### 4. **Ative auto-update agora** (recomendado)
 
 Dentro do Claude Code:
 
@@ -142,7 +114,11 @@ Dentro do Claude Code:
 
 → aba **Marketplaces** → **conversion-agent** → **Enable auto-update**.
 
-### 7. Smoke
+### 5. Primeiro uso (login automático)
+
+Descreva uma pauta (ou `/conversion-agent:conversion-start`). O magic link
+chega no seu e-mail corporativo; clique e a sessão fica salva. Sem comando
+de terminal.
 
 ```
 /conversion-agent:whereami
@@ -150,28 +126,19 @@ Dentro do Claude Code:
 
 ---
 
-## Materializando um project
+## Abrindo um project
 
-Após login, baixe um project pro disco:
+Não há comando de terminal. A materialização é conversacional — peça em
+prosa ("abre o project `<slug>`") ou use as skills do plugin:
 
-```bash
-conversion ws                  # lista workspaces que você acessa
-conversion projeto             # lista projects do workspace ativo
-conversion pull <ws>/<proj>    # materializa numa pasta local
+```
+/conversion-agent:projeto       # lista e ativa projects do workspace
+/conversion-agent:abrir <slug>  # materializa + ativa um project
 ```
 
-A pasta criada conterá `briefing/`, `deliverables/`, `brain/`. Abra-a
-com o Claude Code e use as skills do plugin.
-
-## Sync automático
-
-Daemon que sincroniza disco ↔ backend continuamente:
-
-```bash
-conversion start    # inicia em background
-conversion status   # estado atual
-conversion stop     # encerra
-```
+A pasta criada conterá `briefing/`, `deliverables/`, `brain/`. As mudanças
+são sincronizadas com o backend automaticamente enquanto o Claude Code está
+aberto.
 
 ## Skills disponíveis
 
@@ -179,6 +146,7 @@ Invocadas com `/conversion-agent:<nome>` dentro do Claude Code:
 
 | Skill | Função |
 |---|---|
+| `conversion-start` | Ponto de entrada; descreva a pauta e o orquestrador conduz |
 | `whereami` | Mostra contexto da sessão (workspace, project, brain) |
 | `briefing` | Gera briefing SEO a partir de tópico + keyword |
 | `redator` | Transforma briefing em artigo aplicando 9 quality gates |
@@ -186,8 +154,8 @@ Invocadas com `/conversion-agent:<nome>` dentro do Claude Code:
 | `editor-coesao` | Refina coesão textual em PT-BR |
 | `cluster` | Cria cluster (pillar + satellites) |
 | `brain` / `brain-update` | Memória do project (tom, glossário, decisões) |
-| `pull` / `status` | Sincronização local |
-| `workspace` / `projeto` | Navegação entre workspaces e projects |
+| `projeto` / `abrir` | Navegação e materialização de projects |
+| `workspace` | Navegação entre workspaces |
 | `historico` / `buscar` | Pesquisa no project |
 | `convidar` / `novo-projeto` / `novo-workspace` | Admin |
 
@@ -195,88 +163,41 @@ Invocadas com `/conversion-agent:<nome>` dentro do Claude Code:
 
 ## Troubleshooting
 
-### `Failed to install: This plugin uses a source type your Claude Code version does not support`
-Aparece quando o `marketplace.json` em cache no Claude Code é antigo (de
-uma versão anterior do plugin). Force re-add do marketplace:
+### `npm error 404 … @agenciaconversion/cli`
+Esperado — o CLI foi **descontinuado**. Ignore qualquer guia antigo que
+mande `npm install -g @agenciaconversion/cli`. Siga o fluxo plugin-first
+acima.
+
+### Plugin não aparece após `/plugin install`
+Rode `/reload-plugins` ou reinicie o Claude Code. Se persistir, force re-add
+do marketplace:
 
 ```
 /plugin marketplace remove conversion-agent
 /plugin marketplace add agencia-conversion/conversion-agent-plugin
-/plugin install conversion-agent
-/reload-plugins
+/plugin install conversion-agent@conversion-agent
 ```
 
-### `Failed to clone repository: git@github.com: Permission denied (publickey)`
-Aparece quando uma versão antiga do plugin (`source: github` em formato
-objeto) está em cache. Mesmo fix do erro acima — `marketplace remove` +
-`add` baixa o manifest novo, que usa path relativo dentro do próprio
-repo e não precisa de SSH.
+### `Failed to install: This plugin uses a source type your Claude Code version does not support`
+`marketplace.json` em cache antigo. Atualize o Claude Code pra versão
+recente e force o re-add do marketplace (bloco acima).
 
-Se ainda persistir após o re-add, force o git a usar HTTPS pra clones do
-GitHub (one-time, no terminal):
+### Skill responde `not_authenticated` ou `session_expired`
+Não rode nada manual. Reinvoque `/conversion-agent:conversion-start` — o
+orquestrador dispara um novo magic link no seu e-mail. Clique e siga.
 
-```bash
-git config --global url."https://github.com/".insteadOf git@github.com:
-```
+### Magic link não chega
+Cheque spam. Confirme que seu e-mail `@conversion.com.br` foi ativado pelo
+admin. Se não chegar em ~30s, fale com o suporte.
 
-### `(no content)` ao rodar `/plugin install conversion-agent`
-O install deu silêncio sem nem abrir o card de detalhes. Significa que o
-manifest ainda está em cache e não bateu com o novo. Faça
-`/plugin marketplace remove conversion-agent` + add + install (mesma
-sequência do erro acima).
-
-### `'conversion' is not recognized` (Windows)
-Feche e reabra o terminal. Se persistir, adicione `npm bin -g` ao `PATH`.
-
-### `Permission denied` em `npm install -g` (Mac)
-Use `nvm` ou `volta` em vez de Node global, ou `sudo npm install -g
-@agenciaconversion/cli`.
-
-### `not_authenticated` ao usar uma skill
-Token expirou. Rode `conversion login` novamente.
-
-### `SSE open failed: Unauthorized` no daemon
-Versão antiga do CLI. Atualize:
-
-```bash
-npm install -g @agenciaconversion/cli@latest
-conversion stop
-conversion start
-```
-
-### Plugin não aparece após `/plugin install`
-Reinicie o Claude Code. Se não resolver:
-
-```bash
-conversion logout
-conversion login
-```
-
-E refaça `/plugin install conversion-agent`.
-
-### `conversion login` abre o browser mas trava
-- Firewall bloqueando `http://localhost:8765..8775`. Libere localhost.
-- Logs em `~/.conversion/login.log` (Mac) ou
-  `%USERPROFILE%\.conversion\login.log` (Windows).
-
-### Múltiplas contas na mesma máquina
-Setar `CONVERSION_EMAIL` no `~/.claude/settings.json` (bloco env do
-plugin) pra escolher qual usar.
-
-## Privacidade
-
-- O plugin envia apenas: e-mail logado, slug da skill chamada e hash
-  SHA-256 dos parâmetros — nunca o conteúdo bruto da request.
-- A metodologia retornada vem com watermark zero-width (ADR-005). Não
-  reproduza textualmente em respostas — use como referência.
-- Off-boarding: admin revoga no painel; usuário pode rodar
-  `conversion logout --all` pra limpar credenciais locais.
-
-## Versões mínimas
-
-- `@agenciaconversion/cli` ≥ 0.1.29
-- `@agenciaconversion/mcp-server` ≥ 0.3.2
+### `rate_limited`
+Você passou de 100 chamadas/hora. Espere o tempo indicado.
 
 ## Suporte
 
-Issues técnicos: https://github.com/agencia-conversion/conversion-agent-plugin/issues
+- Issue técnica: abra neste repo.
+- Metodologia ou acesso: `diego@conversion.com.br`.
+
+## Licença
+
+Proprietário — Agência Conversion. Uso interno apenas.
