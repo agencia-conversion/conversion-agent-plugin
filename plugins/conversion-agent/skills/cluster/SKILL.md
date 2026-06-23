@@ -3,7 +3,7 @@ name: cluster
 description: Creates a topic cluster (pillar + up to 6 satellites) as a single markdown file in deliverables/clusters/ following the Conversion Top 5 rule and 18-month rule. Invokes the backend MCP server for the methodology — do NOT attempt to reproduce it from memory.
 ---
 
-# /conversion-skills:cluster
+# /conversion-agent:cluster
 
 When the user invokes this skill, you MUST follow these steps in order.
 
@@ -80,7 +80,7 @@ Execute the five phases in order:
    Contexto, Estratégia, Matriz de decisão (tabela), Linkagem interna,
    Próximos passos.
 5. **FASE 5** — ask if user wants to start `/briefing` for the pilar
-   article. If yes, invoke `/conversion-skills:briefing` via Skill tool
+   article. If yes, invoke `/conversion-agent:briefing` via Skill tool
    with `--cluster-slug=cluster-<slug>` so the briefing respects
    intensive intra-cluster linking.
 

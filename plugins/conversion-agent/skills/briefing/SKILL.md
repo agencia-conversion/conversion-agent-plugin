@@ -3,7 +3,7 @@ name: briefing
 description: Generates an SEO briefing for a given topic and keyword using the Conversion proprietary methodology. Invokes the backend MCP server for the methodology — do NOT attempt to reproduce it from memory.
 ---
 
-# /conversion-skills:briefing
+# /conversion-agent:briefing
 
 When the user invokes this skill, you MUST follow these steps in order.
 
@@ -88,7 +88,7 @@ Ao final do briefing, VOCÊ DEVE:
 3. **Push implícito + URL web**: depois do Write, chame a ferramenta
    Bash: `cd <project-root> && conversion push`. Extraia a URL web da
    saída do push (formato
-   `https://conversion-skills.vercel.app/app/p/<ws_uuid>/<proj_uuid>/<path>`).
+   `https://agent.conversion.com.br/app/p/<ws_uuid>/<proj_uuid>/<path>`).
 
 4. **Responder ao usuário APENAS com:**
    - URL web do arquivo gravado (clicável, nunca path local).
@@ -104,7 +104,7 @@ A resposta no chat deve caber em 10-15 linhas.
 
 ```
 Briefing pronto:
-https://conversion-skills.vercel.app/app/p/<ws>/<proj>/conteudo/trafego-organico.yaml
+https://agent.conversion.com.br/app/p/<ws>/<proj>/conteudo/trafego-organico.yaml
 
 Highlights:
 - Cliente rankeia #5 para "tráfego orgânico"
@@ -112,7 +112,7 @@ Highlights:
 - Gap 2: FAQ com schema JSON-LD não está implementado
 - Recomendação: otimizar URL existente (Skyscraper), não criar nova
 
-Próximo passo: revisar o YAML e rodar /conversion-skills:redator quando
+Próximo passo: revisar o YAML e rodar /conversion-agent:redator quando
 disponível.
 ```
 

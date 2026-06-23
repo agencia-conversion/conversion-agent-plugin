@@ -8,7 +8,7 @@ description: >-
   `<ws>/<proj>` = pull explícito.
 ---
 
-# /conversion-skills:pull
+# /conversion-agent:pull
 
 Atalho pra `conversion pull`.
 

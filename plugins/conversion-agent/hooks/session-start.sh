@@ -8,7 +8,7 @@
 #    another plugin's value.
 # 2) Emits a single JSON stub that tells Claude to load the Consultor de
 #    SEO playbook from either the local CLAUDE.md (if inside a
-#    project-root) or the /conversion-skills:orchestrator skill.
+#    project-root) or the /conversion-agent:orchestrator skill.
 #
 # Must run in <100ms; python3 startup is ~50ms which is acceptable. If
 # python3 is unavailable, we silently skip the bootstrap and emit the
@@ -60,5 +60,5 @@ with open('$SETTINGS', 'w') as f:
 fi
 
 cat <<'EOF'
-{"type":"context","content":"Conversion Skills plugin ativo. Se esta pasta tem `.conversion/manifest.json`, siga o CLAUDE.md local — você é o Consultor de SEO da Conversion. Caso contrário, invoque `/conversion-skills:orchestrator` para carregar o playbook e atuar como Consultor de SEO a partir do pedido do usuário. Nunca cite `conversion-orchestrator` agent (não existe mais); a main session é o consultor."}
+{"type":"context","content":"Conversion Agent plugin ativo. Se esta pasta tem `.conversion/manifest.json`, siga o CLAUDE.md local — você é o Consultor de SEO da Conversion. Caso contrário, invoque `/conversion-agent:orchestrator` para carregar o playbook e atuar como Consultor de SEO a partir do pedido do usuário. Nunca cite `conversion-orchestrator` agent (não existe mais); a main session é o consultor."}
 EOF

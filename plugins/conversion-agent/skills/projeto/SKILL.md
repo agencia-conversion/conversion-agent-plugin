@@ -8,7 +8,7 @@ description: >-
   da acme", "muda pra landing", "lista os projects".
 ---
 
-# /conversion-skills:projeto [<proj-slug> | <ws>/<proj>]
+# /conversion-agent:projeto [<proj-slug> | <ws>/<proj>]
 
 Atalho de navegação por project.
 

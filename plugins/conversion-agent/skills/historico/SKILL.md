@@ -3,7 +3,7 @@ name: historico
 description: Mostra os últimos N commits do project ativo. Use quando o usuário perguntar "o que mudou recentemente?", "quem mexeu nisso?", "histórico do project", ou pra reconstruir contexto antes de retomar trabalho.
 ---
 
-# /conversion-skills:historico
+# /conversion-agent:historico
 
 Últimos commits do project ativo.
 

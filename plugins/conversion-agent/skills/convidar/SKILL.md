@@ -6,7 +6,7 @@ description: >-
   joão como member", "manda convite pro novo dev".
 ---
 
-# /conversion-skills:convidar <email> [--ws <ws-slug>]
+# /conversion-agent:convidar <email> [--ws <ws-slug>]
 
 Atalho pro `conversion members invite`.
 

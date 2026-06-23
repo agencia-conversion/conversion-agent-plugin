@@ -7,7 +7,7 @@ description: >-
   pushadas.
 ---
 
-# /conversion-skills:status
+# /conversion-agent:status
 
 Atalho pra `conversion status`.
 
