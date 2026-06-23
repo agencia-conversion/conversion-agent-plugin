@@ -1,64 +1,47 @@
 #!/usr/bin/env bash
-# SessionStart hook for the Conversion Skills plugin.
+# SessionStart hook for the Conversion Agent plugin.
 #
-# 1) Best-effort statusline bootstrap. Conversion Skills owns
-#    `~/.claude/settings.json -> statusLine` once per install (gated by a
-#    flag file at ~/.claude/conversion-skills-statusline-bootstrap). Runs
-#    only when no statusLine is configured at all — never overrides
-#    another plugin's value.
-# 2) Emits a single JSON stub that tells Claude to load the Consultor de
-#    SEO playbook from either the local CLAUDE.md (if inside a
-#    project-root) or the /conversion-agent:orchestrator skill.
+# Emits a single JSON context stub that tells Claude to act as the Consultor
+# de SEO, loading the playbook from the `/conversion-agent:orchestrator` skill
+# — the canonical, auto-synced playbook in plugin-first. A local CLAUDE.md is
+# honored only if a legacy materialization happened to leave one on disk;
+# nothing writes CLAUDE.md to disk anymore, so the skill is the source of truth.
 #
-# Must run in <100ms; python3 startup is ~50ms which is acceptable. If
-# python3 is unavailable, we silently skip the bootstrap and emit the
-# context as before.
+# Self-heal (one-time): the legacy CLI-era bootstrap used to set
+# `~/.claude/settings.json -> statusLine -> "conversion statusline"`. That CLI
+# is decommissioned, so the command no longer exists and the statusline breaks.
+# If we find that exact stale value we remove it. We never touch a statusLine
+# set by the user or another plugin. (A plugin-provided statusline is backlog.)
+#
+# Must run in <100ms; the self-heal runs at most once per install (flag-gated),
+# so the steady-state path is just the `cat` below.
 
 set -euo pipefail
 
 SETTINGS="$HOME/.claude/settings.json"
-FLAG="$HOME/.claude/conversion-skills-statusline-bootstrap"
+HEAL_FLAG="$HOME/.claude/conversion-agent-statusline-healed"
 
-if [ ! -f "$FLAG" ] && command -v python3 >/dev/null 2>&1; then
-  if [ -f "$SETTINGS" ]; then
-    HAS_STATUS=$(python3 -c "
-import sys, json
+if [ ! -f "$HEAL_FLAG" ]; then
+  if [ -f "$SETTINGS" ] && command -v python3 >/dev/null 2>&1; then
+    python3 - "$SETTINGS" <<'PY' 2>/dev/null || true
+import json, sys
+path = sys.argv[1]
 try:
-    with open('$SETTINGS') as f:
-        d = json.load(f)
-    print('yes' if 'statusLine' in d else 'no')
+    with open(path) as f:
+        data = json.load(f)
 except Exception:
-    print('error')
-" 2>/dev/null || echo "error")
-
-    if [ "$HAS_STATUS" = "no" ]; then
-      python3 -c "
-import json
-with open('$SETTINGS') as f:
-    d = json.load(f)
-d['statusLine'] = {'type': 'command', 'command': 'conversion statusline'}
-with open('$SETTINGS', 'w') as f:
-    json.dump(d, f, indent=2)
-    f.write('\n')
-" 2>/dev/null && touch "$FLAG"
-    elif [ "$HAS_STATUS" = "yes" ]; then
-      # Already configured (ours or someone else's) — never tries again.
-      touch "$FLAG"
-    fi
-    # On parse error: leave the flag absent so a subsequent session can retry.
-  else
-    # No settings.json yet — create with our statusLine so first-time
-    # users get the rodapé without running `conversion init`.
-    mkdir -p "$HOME/.claude"
-    python3 -c "
-import json
-with open('$SETTINGS', 'w') as f:
-    json.dump({'statusLine': {'type': 'command', 'command': 'conversion statusline'}}, f, indent=2)
-    f.write('\n')
-" 2>/dev/null && touch "$FLAG"
+    sys.exit(0)
+sl = data.get("statusLine")
+if isinstance(sl, dict) and sl.get("command") == "conversion statusline":
+    data.pop("statusLine", None)
+    with open(path, "w") as f:
+        json.dump(data, f, indent=2)
+        f.write("\n")
+PY
   fi
+  touch "$HEAL_FLAG" 2>/dev/null || true
 fi
 
 cat <<'EOF'
-{"type":"context","content":"Conversion Agent plugin ativo. Se esta pasta tem `.conversion/manifest.json`, siga o CLAUDE.md local — você é o Consultor de SEO da Conversion. Caso contrário, invoque `/conversion-agent:orchestrator` para carregar o playbook e atuar como Consultor de SEO a partir do pedido do usuário. Nunca cite `conversion-orchestrator` agent (não existe mais); a main session é o consultor."}
+{"type":"context","content":"Conversion Agent plugin ativo. Se esta pasta é um project Conversion (tem `.conversion/manifest.json`), atue como Consultor de SEO da Conversion seguindo o playbook `/conversion-agent:orchestrator` (use o CLAUDE.md local apenas se existir — caso contrário a skill é a fonte canônica). Fora de um project, invoque `/conversion-agent:orchestrator` para carregar o playbook a partir do pedido do usuário. Nunca cite o agent `conversion-orchestrator` (não existe mais); a main session é o consultor."}
 EOF
