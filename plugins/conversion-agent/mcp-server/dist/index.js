@@ -22719,13 +22719,55 @@ async function runProxySemrush(input) {
   }
 }
 
+// src/lib/brain-vault.ts
+var BRAIN_PROVAS_TYPE = "brain.provas";
+var BRAIN_PROVAS_PATH = "brain/provas.md";
+var BRAIN_FONTES_TYPE = "brain.fontes";
+var BRAIN_FONTES_PATH = "brain/fontes.md";
+var PROVAS_BODY = `# Cofre de provas
+
+Mem\xF3ria dur\xE1vel dos claims institucionais e de produto que j\xE1 t\xEAm prova
+aprovada por um humano. Ainda vazio: cada entrada \xE9 curada e assinada pela
+web. Enquanto vazio nada bloqueia \u2014 a verifica\xE7\xE3o factual busca a prova
+normalmente.
+`;
+var FONTES_BODY = `# Hierarquia de fontes
+
+Fontes confi\xE1veis deste projeto, em ordem de autoridade. Ainda vazio: liste
+aqui as fontes que mais valem para este cliente/setor. Enquanto vazio vale a
+hierarquia padr\xE3o.
+`;
+function buildSeed(type, title, body) {
+  return (updatedAtIso) => `---
+title: ${title}
+type: ${type}
+updated_at: ${updatedAtIso}
+---
+
+${body}`;
+}
+var BRAIN_VAULT_SEEDS = [
+  {
+    type: BRAIN_PROVAS_TYPE,
+    path: BRAIN_PROVAS_PATH,
+    build: buildSeed(BRAIN_PROVAS_TYPE, "Cofre de provas", PROVAS_BODY)
+  },
+  {
+    type: BRAIN_FONTES_TYPE,
+    path: BRAIN_FONTES_PATH,
+    build: buildSeed(BRAIN_FONTES_TYPE, "Hierarquia de fontes", FONTES_BODY)
+  }
+];
+
 // src/tools/read-brain.ts
 var BRAIN_TYPES = [
   "brain.tom_voz",
   "brain.glossario",
+  "brain.fontes",
   "brain.decisoes",
   "brain.aprendizados",
-  "brain.personas"
+  "brain.personas",
+  "brain.provas"
 ];
 var VALID_BRAIN_TYPES = new Set(BRAIN_TYPES);
 var READ_BRAIN_INPUT_SCHEMA = {
@@ -22734,7 +22776,7 @@ var READ_BRAIN_INPUT_SCHEMA = {
     ...PROJECT_SCOPE_SCHEMA_FRAGMENT,
     collection: {
       type: "string",
-      description: "Optional collection filter. Omit to receive all 5 brain files.",
+      description: "Optional collection filter. Omit to receive all 7 brain files.",
       enum: [...BRAIN_TYPES]
     }
   },
@@ -22798,17 +22840,76 @@ function mapError4(err) {
   };
 }
 
+// src/tools/ensure-brain-vault.ts
+var ENSURE_BRAIN_VAULT_INPUT_SCHEMA = {
+  type: "object",
+  properties: {
+    ...PROJECT_SCOPE_SCHEMA_FRAGMENT
+  },
+  required: ["ws_slug", "proj_slug"],
+  additionalProperties: false
+};
+async function runEnsureBrainVault(input, cwd = process.cwd()) {
+  if (!input || typeof input.ws_slug !== "string" || typeof input.proj_slug !== "string") {
+    return {
+      ok: false,
+      error: "bad_input",
+      hint: "ws_slug and proj_slug are required."
+    };
+  }
+  const scope = { ws_slug: input.ws_slug, proj_slug: input.proj_slug };
+  const brain = await runReadBrain(scope, cwd);
+  if (!brain.ok) {
+    return {
+      ok: false,
+      error: brain.error,
+      hint: brain.hint,
+      ...brain.retry_after_sec !== void 0 ? { retry_after_sec: brain.retry_after_sec } : {}
+    };
+  }
+  const presentTypes = new Set(brain.items.map((item) => item.type));
+  const missing = BRAIN_VAULT_SEEDS.filter(
+    (seed) => !presentTypes.has(seed.type)
+  );
+  const alreadyPresent = BRAIN_VAULT_SEEDS.filter(
+    (seed) => presentTypes.has(seed.type)
+  ).map((seed) => seed.type);
+  if (missing.length === 0) {
+    return { ok: true, seeded: [], already_present: alreadyPresent };
+  }
+  const updatedAtIso = (/* @__PURE__ */ new Date()).toISOString();
+  const files = missing.map((seed) => ({
+    path: seed.path,
+    content: seed.build(updatedAtIso)
+  }));
+  const message = missing.length === BRAIN_VAULT_SEEDS.length ? "chore(brain): semeia cofre de provas (provas.md + fontes.md)" : `chore(brain): semeia ${missing.map((seed) => seed.path).join(", ")}`;
+  const saved = await runProjectSaveBatch({ ...scope, files, message }, cwd);
+  if (!saved.ok) {
+    return { ok: false, error: saved.error, hint: saved.hint };
+  }
+  return {
+    ok: true,
+    seeded: missing.map((seed) => seed.type),
+    already_present: alreadyPresent,
+    commit_id: saved.commit_id,
+    url: saved.url
+  };
+}
+
 // src/tools/search-project.ts
 var VALID_TYPES = /* @__PURE__ */ new Set([
   "artigo",
   "cluster",
+  "factcheck_dossier",
   "newsletter",
   "relatorio",
   "brain.tom_voz",
   "brain.glossario",
+  "brain.fontes",
   "brain.decisoes",
   "brain.aprendizados",
-  "brain.personas"
+  "brain.personas",
+  "brain.provas"
 ]);
 var SEARCH_PROJECT_INPUT_SCHEMA = {
   type: "object",
@@ -23533,8 +23634,13 @@ function buildServer() {
         inputSchema: GET_BACKLINKS_INPUT_SCHEMA
       },
       {
+        name: "ensure_brain_vault",
+        description: "Idempotently bootstraps the brain proof vault (`brain/provas.md` + `brain/fontes.md`) for a project. Reads the backend brain and commits only the missing vault files in one atomic commit; if both already exist it is a no-op. Seeding NEVER enables fact-checking. Call once when a project becomes active so the AI starts work with the proof vault wired.",
+        inputSchema: ENSURE_BRAIN_VAULT_INPUT_SCHEMA
+      },
+      {
         name: "read_brain",
-        description: "Reads the 5 `brain/` files of the current project (tom-voz, glossario, decisoes, aprendizados, personas). Call FIRST in every content skill to ground outputs in the client's voice. Pass `collection` to restrict to one type.",
+        description: "Reads the `brain/` files of the current project (core voice files plus optional proof/source files). Call FIRST in every content skill to ground outputs in the client's voice. Pass `collection` to restrict to one type.",
         inputSchema: READ_BRAIN_INPUT_SCHEMA
       },
       {
@@ -23630,6 +23736,11 @@ function buildServer() {
         break;
       case "get_backlinks":
         result = await runGetBacklinks(safeArgs);
+        break;
+      case "ensure_brain_vault":
+        result = await runEnsureBrainVault(
+          safeArgs
+        );
         break;
       case "read_brain":
         result = await runReadBrain(safeArgs);
