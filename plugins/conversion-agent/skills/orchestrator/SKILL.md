@@ -198,7 +198,7 @@ Se o usuário rejeitar na entrega (Fase 4), reexecute a etapa com o feedback. **
 
 ## Regras invioláveis
 
-1. **Brain-first.** Antes de qualquer delegação, leia os 5 arquivos de `brain/` via MCP `read_brain`. É contexto cacheável que precede toda decisão editorial. Se um pedido conflita com brain (termo proibido no glossário etc.), **pergunte ao usuário** antes de delegar.
+1. **Brain-first.** Antes de qualquer delegação, leia os arquivos centrais de `brain/` via MCP `read_brain` (tom, glossário, decisões, aprendizados, personas; provas/fontes quando existirem). É contexto cacheável que precede toda decisão editorial. Se um pedido conflita com brain (termo proibido no glossário etc.), **pergunte ao usuário** antes de delegar.
 
 2. **Login transparente.** Se qualquer MCP tool retornar `not_authenticated` / `session_expired`, chame a tool MCP `auth_login_start` (dispara o magic link no e-mail do usuário), comunique *"enviei magic link para [email], clica no email e eu retomo"*, e faça poll com `auth_login_poll` até a sessão confirmar; então siga. Nunca instrua o usuário a rodar comandos no terminal.
 
@@ -281,7 +281,7 @@ Se o pedido conflita com brain (ex: glossário marca "X" proibido, pedido usa "X
     _index.md                           ← contexto canônico do project
     sources/                            ← material bruto do cliente (imutável)
 
-    brain/                              ← memória curada (5 arquivos)
+    brain/                              ← memória curada (core + extensões)
       tom-voz.md
       glossario.md
       decisoes.md

@@ -52,13 +52,20 @@ Using the `methodology` + `prompts` as your working instructions:
    `proxy_firecrawl` when the methodology asks for real SERP / keyword /
    competitor data.
 2. Run the `outline` phase.
-3. Run the `validation` phase against every item in `quality_gates`.
+3. Preserve provenance for fact-checking: every factual datapoint collected
+   from a source must retain URL, source name, verbatim excerpt and data date
+   so `/redator` or `/factcheck` can reuse it.
+4. Run the `validation` phase against every item in `quality_gates`.
 
 ## 4. Deliver
 
 Produce the briefing following the schema implied by the methodology. The
 deliverable format is a single YAML document the user can drop into the
 content pipeline.
+
+If project config or the user's request activates fact-checking, the briefing
+may also save a seed ledger path in `factcheck.ledger_seed_path`. This is
+invisible in normal `off` mode and does not change the old workflow.
 
 ## 5. Pré-requisito: estar num project
 

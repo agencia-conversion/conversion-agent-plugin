@@ -18,13 +18,14 @@ Liste em prosa de consultor as skills agrupadas por propósito. Use a tabela aba
 ### Conteúdo editorial (skills de geração)
 - `/briefing` — análise SERP + skyscraper plan + pesquisa de fontes.
 - `/redator` — gera artigo a partir do briefing.
+- `/factcheck` — gera ledger de claims + dossiê factual.
 - `/revisor` — revisa quality gates inline.
 - `/editor-coesao` — coesão final em pt-BR.
 - `/cluster` — pilar + satélites.
 
 ### Memória (brain)
 - `/brain-update` — propõe atualizações ao brain (auto-fire em Fase 4).
-- `/brain` — visualiza estado dos 5 arquivos do brain.
+- `/brain` — visualiza estado do brain (arquivos centrais + provas/fontes).
 
 ### Navegação
 - `/workspace` — lista/troca workspace ativo.
