@@ -5,9 +5,16 @@ metodologia proprietária de SEO da empresa. A metodologia em si vive no
 backend autenticado (`https://agent.conversion.com.br`); este repositório
 contém apenas o manifest, os stubs de skill e o MCP server empacotado.
 
-> O conteúdo de plugin (manifests, skills, mcp-server) é sincronizado
-> automaticamente a partir do monorepo privado. Para correções neste
-> `README.md`, abra um issue ou PR — ele é mantido manualmente.
+<!--
+  GERADO AUTOMATICAMENTE: este README é sincronizado a partir de
+  `packages/plugin/PUBLIC_README.md` no monorepo privado
+  (agencia-conversion/conversion-agent) pelo workflow `sync-public-plugin.yml`.
+  Edições manuais aqui serão sobrescritas — edite a fonte no monorepo.
+-->
+
+> Este repositório (manifests, skills, mcp-server e este README) é gerado
+> automaticamente a partir do monorepo privado. Para correções, abra um
+> issue ou um PR no monorepo.
 
 ---
 
