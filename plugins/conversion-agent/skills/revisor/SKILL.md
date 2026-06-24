@@ -58,12 +58,16 @@ Execute the five phases in order:
    - `critical_fixes` prompt for QA-01..QA-08.
    - Link validation (VAL-03..VAL-06).
    - Source validation (VAL-02, VAL-07).
+   - Fact-check dossier consumption when `factcheck.mode` is `advisory` or
+     `enforced`.
    - `val09_news_defense` if `workflow.tipo=noticia`.
    - `qa12_quotes` if `workflow.tipo=noticia`.
    - Language-natural improvements (LN-01..LN-10).
 4. **FASE 4** — `final_checklist` prompt: 13 QA + 7 VAL (+2 notícia) +
-   4 LN items. If taxa de artigos iniciais < 90%, BLOCK finalization and
-   return to `/editor-coesao` with enumerated problematic paragraphs.
+   4 LN items + fact-check dossier gate when active. If taxa de artigos
+   iniciais < 90%, BLOCK finalization and return to `/editor-coesao` with
+   enumerated problematic paragraphs. If `factcheck.mode=enforced`, also
+   BLOCK any legal claim unresolved in the dossier.
 5. **FASE 5** — metadata update (workflow.status=finalizado, stats,
    escaneabilidade).
 

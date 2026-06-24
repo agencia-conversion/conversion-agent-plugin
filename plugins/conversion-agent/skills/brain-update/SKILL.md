@@ -122,8 +122,9 @@ para o arquivo correspondente em `brain/` e deletar a entrada daqui.
 
 Regras:
 
-- `target` deve ser um dos 5 tipos brain (`brain.tom_voz`, `brain.glossario`,
-  `brain.decisoes`, `brain.aprendizados`, `brain.personas`).
+- `target` deve ser um dos tipos brain (`brain.tom_voz`, `brain.glossario`,
+  `brain.decisoes`, `brain.aprendizados`, `brain.personas`, `brain.provas`,
+  `brain.fontes`).
 - `summary` ≤ 300 chars, imperativo, uma linha só.
 - `rationale` entre 4 e 2000 chars, explicação curta do porquê + evidência.
 - `source_slugs` é opcional mas **altamente recomendado** — um humano

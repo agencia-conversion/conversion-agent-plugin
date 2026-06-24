@@ -1,6 +1,6 @@
 ---
 name: redator
-description: Transforms a validated SEO briefing (YAML) into a finalized article using the Conversion proprietary methodology, with nine quality gates and auto-orchestration of /revisor and /editor-coesao. Invokes the backend MCP server for the methodology — do NOT attempt to reproduce it from memory.
+description: Transforms a validated SEO briefing (YAML) into a finalized article using the Conversion proprietary methodology, with opt-in fact-checking and auto-orchestration of /revisor and /editor-coesao. Invokes the backend MCP server for the methodology — do NOT attempt to reproduce it from memory.
 ---
 
 # /conversion-agent:redator
@@ -15,6 +15,15 @@ The user provides the path to a briefing YAML (`$ARGUMENTS`). Validate:
 - `workflow.status` is `briefing` (never `rascunho` or `finalizado`).
 - `workflow.tipo` ∈ { `evergreen`, `noticia`, `cluster` }.
 
+Resolve `factcheck_mode` before fetching context:
+
+- Explicit user intent wins. "com fact-checking", "verificado" or "com
+  checagem" → `enforced` for this article.
+- "rascunho rápido" or "sem checar" → `off` for this article.
+- Otherwise use project config (`project.json.factcheck` or
+  `.conversion/project.json.factcheck`) if present.
+- Fallback is `off`, preserving the old flow.
+
 If any check fails, stop and report the specific reason.
 
 ## 2. Fetch the context
@@ -26,7 +35,8 @@ Call the MCP tool `conversion-context:get_skill_context` with:
   "skill": "redator",
   "params": {
     "marca": "<marca-slug>",
-    "input_hash": "<sha256(path + tipo) hex>"
+    "factcheck_mode": "<off|advisory|enforced>",
+    "input_hash": "<sha256(path + tipo + factcheck_mode) hex>"
   }
 }
 ```
@@ -67,21 +77,29 @@ the nine gates in order:
    already done for notícia).
 9. **GATE 8** — final validation (word count ≥ 90% target, metadata sizes
    exact).
+10. **QG-09** — if `factcheck_mode` is `advisory` or `enforced`, invoke
+    `/conversion-agent:factcheck` on the draft before `/revisor`.
 
 ## 4. GATE 9 — Auto-review (orchestration)
 
 After GATE 8 passes, **invoke the sub-skills via the Skill tool**:
 
-1. Call `/conversion-agent:revisor` with the same YAML path. If it
+1. If `factcheck_mode=advisory`, call `/conversion-agent:factcheck` and
+   continue even if the dossier reports warnings. Include the dossier URL
+   in the final response.
+2. If `factcheck_mode=enforced`, call `/conversion-agent:factcheck` and
+   STOP if it returns `blocked`. Status remains `rascunho`; return the
+   dossier URL plus the proof/questions required from the reviewer.
+3. Call `/conversion-agent:revisor` with the same YAML path. If it
    reports a blocking error (fonte concorrente, dados sem fonte, quote
    em inglês, VAL-09 failure), STOP the workflow and return the error
    message verbatim. Status remains `rascunho`.
-2. After `/revisor` passes, run the external links duplicate validator.
+4. After `/revisor` passes, run the external links duplicate validator.
    If duplicates, STOP and return the error.
-3. Call `/conversion-agent:editor-coesao` with the same YAML path. If
+5. Call `/conversion-agent:editor-coesao` with the same YAML path. If
    taxa de artigos iniciais < 90% even after corrections, STOP with
    report.
-4. Only after both sub-skills pass, update `workflow.status=finalizado`
+6. Only after both sub-skills pass, update `workflow.status=finalizado`
    and `workflow.updated_at` with an ISO timestamp.
 
 The user MUST NOT invoke `/revisor` or `/editor-coesao` manually — they
