@@ -11,7 +11,7 @@ Visualização do brain do project ativo.
 
 1. Resolve project ativo via `get_active_project`. Se não há → peça ao usuário antes.
 2. Chame MCP `read_brain({ ws_slug, proj_slug })` — retorna os arquivos de brain presentes no projeto.
-3. Pra cada arquivo central (tom_voz, glossario, decisoes, aprendizados, personas) e extensão presente (provas, fontes):
+3. Pra cada arquivo central (tom_voz, glossario, decisoes, aprendizados, personas) e extensão presente (provas, fontes, produtos):
    - Linha 1: nome + tamanho aproximado (ex: "tom-voz: 1.2KB, atualizado há 3 dias").
    - Linha 2: URL editor web `https://agent.conversion.com.br/p/<ws_id>/<proj_id>/edit/brain/<file>.md`.
 4. Se algum arquivo central está em estado-semente (default seed, não editado), sinalize: "(seed default — edite quando o cliente tiver tom-de-voz definido)".

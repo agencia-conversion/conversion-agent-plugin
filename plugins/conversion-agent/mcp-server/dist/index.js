@@ -22724,6 +22724,8 @@ var BRAIN_PROVAS_TYPE = "brain.provas";
 var BRAIN_PROVAS_PATH = "brain/provas.md";
 var BRAIN_FONTES_TYPE = "brain.fontes";
 var BRAIN_FONTES_PATH = "brain/fontes.md";
+var BRAIN_PRODUTOS_TYPE = "brain.produtos";
+var BRAIN_PRODUTOS_PATH = "brain/produtos.md";
 var PROVAS_BODY = `# Cofre de provas
 
 Mem\xF3ria dur\xE1vel dos claims institucionais e de produto que j\xE1 t\xEAm prova
@@ -22736,6 +22738,23 @@ var FONTES_BODY = `# Hierarquia de fontes
 Fontes confi\xE1veis deste projeto, em ordem de autoridade. Ainda vazio: liste
 aqui as fontes que mais valem para este cliente/setor. Enquanto vazio vale a
 hierarquia padr\xE3o.
+`;
+var PRODUTOS_BODY = `# Produtos e servi\xE7os
+
+Cat\xE1logo can\xF4nico dos produtos e servi\xE7os deste cliente \u2014 fonte \xFAnica para o
+agente recuperar nomes, posicionamento, URLs oficiais (para linkar) e \xE2ncoras
+na hora de escrever e linkar. Ainda vazio: preencha uma se\xE7\xE3o por
+produto/servi\xE7o, seguindo o modelo abaixo.
+
+<!-- Modelo por produto/servi\xE7o (copie e preencha):
+
+## Nome do produto/servi\xE7o
+- **Posicionamento:** uma linha sobre o que \xE9 e para quem.
+- **URL can\xF4nica:** https://cliente.com.br/produto (p\xE1gina oficial para linkar)
+- **\xC2ncoras preferidas:** termo a, termo b
+- **\xC2ncoras a evitar:** termo gen\xE9rico
+- **Diferenciais (com prova):** ponto 1; ponto 2
+-->
 `;
 function buildSeed(type, title, body) {
   return (updatedAtIso) => `---
@@ -22756,6 +22775,11 @@ var BRAIN_VAULT_SEEDS = [
     type: BRAIN_FONTES_TYPE,
     path: BRAIN_FONTES_PATH,
     build: buildSeed(BRAIN_FONTES_TYPE, "Hierarquia de fontes", FONTES_BODY)
+  },
+  {
+    type: BRAIN_PRODUTOS_TYPE,
+    path: BRAIN_PRODUTOS_PATH,
+    build: buildSeed(BRAIN_PRODUTOS_TYPE, "Produtos e servi\xE7os", PRODUTOS_BODY)
   }
 ];
 
@@ -22767,7 +22791,8 @@ var BRAIN_TYPES = [
   "brain.decisoes",
   "brain.aprendizados",
   "brain.personas",
-  "brain.provas"
+  "brain.provas",
+  "brain.produtos"
 ];
 var VALID_BRAIN_TYPES = new Set(BRAIN_TYPES);
 var READ_BRAIN_INPUT_SCHEMA = {
@@ -22776,7 +22801,7 @@ var READ_BRAIN_INPUT_SCHEMA = {
     ...PROJECT_SCOPE_SCHEMA_FRAGMENT,
     collection: {
       type: "string",
-      description: "Optional collection filter. Omit to receive all 7 brain files.",
+      description: "Optional collection filter. Omit to receive all 8 brain files.",
       enum: [...BRAIN_TYPES]
     }
   },
@@ -22868,12 +22893,10 @@ async function runEnsureBrainVault(input, cwd = process.cwd()) {
     };
   }
   const presentTypes = new Set(brain.items.map((item) => item.type));
-  const missing = BRAIN_VAULT_SEEDS.filter(
-    (seed) => !presentTypes.has(seed.type)
+  const missing = BRAIN_VAULT_SEEDS.filter((seed) => !presentTypes.has(seed.type));
+  const alreadyPresent = BRAIN_VAULT_SEEDS.filter((seed) => presentTypes.has(seed.type)).map(
+    (seed) => seed.type
   );
-  const alreadyPresent = BRAIN_VAULT_SEEDS.filter(
-    (seed) => presentTypes.has(seed.type)
-  ).map((seed) => seed.type);
   if (missing.length === 0) {
     return { ok: true, seeded: [], already_present: alreadyPresent };
   }
@@ -22882,7 +22905,7 @@ async function runEnsureBrainVault(input, cwd = process.cwd()) {
     path: seed.path,
     content: seed.build(updatedAtIso)
   }));
-  const message = missing.length === BRAIN_VAULT_SEEDS.length ? "chore(brain): semeia cofre de provas (provas.md + fontes.md)" : `chore(brain): semeia ${missing.map((seed) => seed.path).join(", ")}`;
+  const message = missing.length === BRAIN_VAULT_SEEDS.length ? `chore(brain): semeia brain (${missing.map((seed) => seed.path).join(", ")})` : `chore(brain): semeia ${missing.map((seed) => seed.path).join(", ")}`;
   const saved = await runProjectSaveBatch({ ...scope, files, message }, cwd);
   if (!saved.ok) {
     return { ok: false, error: saved.error, hint: saved.hint };
