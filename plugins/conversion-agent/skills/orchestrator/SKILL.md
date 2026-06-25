@@ -3,7 +3,7 @@ name: orchestrator
 description: Playbook do Consultor de SEO da Conversion — espelho do CLAUDE.md local. Invoque só em delegação a sub-agent ou quando CLAUDE.md local estiver ausente/desatualizado.
 ---
 
-<!-- GERADO AUTOMATICAMENTE a partir de apps/backend/src/templates/claude-md.ts (versão 0.9.6).
+<!-- GERADO AUTOMATICAMENTE a partir de apps/backend/src/templates/claude-md.ts (versão 0.9.7).
      Não edite manualmente. Regere com:
        pnpm --filter @conversion/plugin run sync:orchestrator
 -->
@@ -55,7 +55,7 @@ Regra dura — siga sempre:
    - **Pare imediatamente**.
    - Não execute, não responda com plano, não delegue.
    - Pergunte: *"Qual project? Formato `cliente/dominio` (ex: `athena/cobasi-com-br`)."* Se o usuário não souber, ofereça listar (você busca via a tool `list_workspaces_projects`).
-   - Aguarde resposta válida. Após, chame `set_active_project` (se ainda não materializado, `materialize_project` primeiro), então `ensure_brain_vault` (idempotente — semeia o cofre de provas se faltar) e prossiga.
+   - Aguarde resposta válida. Após, chame `set_active_project` (se ainda não materializado, `materialize_project` primeiro), então `ensure_brain_vault` (idempotente — semeia o cofre de provas + catálogo de produtos se faltar) e prossiga.
 
 3. **Sticky boundary endurecido** — quando há project ativo `X/Y`, **detecte gatilhos de troca em toda mensagem do usuário**:
    - Menção de slug `<cliente>/<domínio>` diferente do ativo.
@@ -198,7 +198,7 @@ Se o usuário rejeitar na entrega (Fase 4), reexecute a etapa com o feedback. **
 
 ## Regras invioláveis
 
-1. **Brain-first.** Antes de qualquer delegação, leia o brain completo via MCP `read_brain` — os 5 centrais (tom, glossário, decisões, aprendizados, personas) e o cofre de provas (provas, fontes). O cofre é **semeado automaticamente** quando um project vira ativo (tool `ensure_brain_vault`), então provas/fontes existem mesmo vazios — semear **não** liga fact-checking. É contexto cacheável que precede toda decisão editorial. Se um pedido conflita com brain (termo proibido no glossário etc.), **pergunte ao usuário** antes de delegar.
+1. **Brain-first.** Antes de qualquer delegação, leia o brain completo via MCP `read_brain` — os 5 centrais (tom, glossário, decisões, aprendizados, personas), o cofre de provas (provas, fontes) e o catálogo de produtos (produtos). O cofre e o catálogo são **semeados automaticamente** quando um project vira ativo (tool `ensure_brain_vault`), então provas/fontes/produtos existem mesmo vazios — semear **não** liga fact-checking. É contexto cacheável que precede toda decisão editorial. Se um pedido conflita com brain (termo proibido no glossário etc.), **pergunte ao usuário** antes de delegar.
 
 2. **Login transparente.** Se qualquer MCP tool retornar `not_authenticated` / `session_expired`, chame a tool MCP `auth_login_start` (dispara o magic link no e-mail do usuário), comunique *"enviei magic link para [email], clica no email e eu retomo"*, e faça poll com `auth_login_poll` até a sessão confirmar; então siga. Nunca instrua o usuário a rodar comandos no terminal.
 
@@ -232,7 +232,7 @@ Material bruto fornecido pelo cliente ou coletado externamente:
 ### Camada 2 — `brain/` + `deliverables/` + `pesquisas/` (síntese curada)
 
 LLM-owned, linked, com frontmatter tipado. Destilação de `sources/` + trabalho criado nas sessões:
-- `brain/` — memória atemporal do cliente: 5 centrais (tom, glossário, decisões, aprendizados, personas) + cofre de provas (provas, fontes, semeado ao ativar o project). Lida **sempre** antes de gerar output.
+- `brain/` — memória atemporal do cliente: 5 centrais (tom, glossário, decisões, aprendizados, personas) + cofre de provas (provas, fontes) + catálogo de produtos (produtos), semeados ao ativar o project. Lida **sempre** antes de gerar output.
 - `deliverables/` — produtos finais entregues pelo project. Organizado em subpastas por natureza do artefato (briefings, conteudos, clusters, newsletters, relatorios). Referências a outros artefatos por slug no frontmatter, nunca por aninhamento físico.
 - `pesquisas/` — insumos cacheáveis e auditáveis, separados por natureza: `serp/` (snapshots de SERP por keyword, reutilizáveis entre artigos via hash) e `fontes/` (fontes primárias auditáveis, com backlinks `used_by[]`). Permanente; arquivamento manual quando o projeto encerra.
 
@@ -252,9 +252,9 @@ Define como a wiki cresce: regras invioláveis, fluxo obrigatório, ritual brain
 
 O brain só tem valor se existir e for mantido. Quatro regras duras:
 
-### R0 — Cofre de provas semeado quando o project vira ativo
+### R0 — Cofre de provas e catálogo de produtos semeados quando o project vira ativo
 
-Sempre que um project vira ativo (materialização inicial ou troca via sticky boundary), chame a tool `ensure_brain_vault` (idempotente). Ela semeia `brain/provas.md` + `brain/fontes.md` vazios-mas-válidos quando ausentes e é no-op quando já existem. Assim todo trabalho com IA já começa com o cofre montado — `read_brain` retorna provas/fontes e o humano cura o conteúdo pela web. **Semear não liga fact-checking**: o modo (`off`/`advisory`/`enforced`) continua o que o project configurou. Nunca ligue `enforced` automaticamente — comece com os arquivos montados e o modo que o project já tem.
+Sempre que um project vira ativo (materialização inicial ou troca via sticky boundary), chame a tool `ensure_brain_vault` (idempotente). Ela semeia `brain/provas.md` + `brain/fontes.md` + `brain/produtos.md` vazios-mas-válidos quando ausentes e é no-op quando já existem. Assim todo trabalho com IA já começa com o cofre e o catálogo montados — `read_brain` retorna provas/fontes/produtos e o humano cura o conteúdo pela web. **Semear não liga fact-checking**: o modo (`off`/`advisory`/`enforced`) continua o que o project configurou. Nunca ligue `enforced` automaticamente — comece com os arquivos montados e o modo que o project já tem.
 
 ### R1 — Aprovação dispara brain-update automaticamente
 
@@ -293,6 +293,7 @@ Se o pedido conflita com brain (ex: glossário marca "X" proibido, pedido usa "X
       personas.md
       provas.md                         ← cofre de provas (semeado por ensure_brain_vault)
       fontes.md                         ← hierarquia de fontes do project
+      produtos.md                       ← catálogo de produtos/serviços (semeado por ensure_brain_vault)
       _pending.md                       ← propostas aguardando revisão
 
     deliverables/                       ← produtos finais
@@ -387,7 +388,7 @@ Quando existe um CLAUDE.md local (materializações antigas, CLI-era), ele e a s
 - **Magic link não confirma:** o usuário deve clicar no link recebido por e-mail. Reenvie com a tool `auth_login_start` e faça poll com `auth_login_poll`.
 - **Sessão fora de hub:** se não há `.conversion-hub.json`, materialize um project (tool `materialize_project`) — isso cria o hub. Sem hub/project ativo, nenhuma skill de conteúdo executa.
 - **Pedido cruza dois projects:** Consultor pausa, reconfirma qual project atender, opcionalmente oferece abrir o segundo em follow-up separado.
-- **`brain/<file>.md ausente`:** `materialize_project` só baixa o que já existe no backend — não cria brain do zero. O cofre de provas (`provas.md`/`fontes.md`) é semeado pela tool `ensure_brain_vault` quando o project vira ativo (idempotente). Os 5 centrais ausentes são populados por trabalho editorial + brain-update, não auto-criados.
+- **`brain/<file>.md ausente`:** `materialize_project` só baixa o que já existe no backend — não cria brain do zero. O cofre de provas (`provas.md`/`fontes.md`) e o catálogo de produtos (`produtos.md`) são semeados pela tool `ensure_brain_vault` quando o project vira ativo (idempotente). Os 5 centrais ausentes são populados por trabalho editorial + brain-update, não auto-criados.
 - **Project não encontrado no hub mas existe no backend**: chame `materialize_project` silenciosamente e prossiga. Não peça permissão — é operação trivial.
 - **Briefing órfão (`references.conteudo` não preenchido):** redator não foi invocado ou falhou antes de gravar o artigo. Ação: invocar a skill redator com o briefing como input; o patch de backlink roda no final da skill.
 - **Artigo órfão (`briefing_ref` vazio):** artigo gerado sem briefing — inconsistência. Ação: não entregar ao usuário; investigar o pipeline (a skill briefing deve sempre rodar antes).
@@ -405,7 +406,7 @@ Tudo roda pelo plugin; não há binário `conversion` no terminal.
 | Autenticar | tools `auth_login_start` → `auth_login_poll` (R2); status: `auth_status` |
 | Listar workspaces/projects | tool `list_workspaces_projects` — ou `/conversion-agent:projeto` / `/conversion-agent:workspace` |
 | Materializar um project | tool `materialize_project` (cria hub + baixa arquivos); `/conversion-agent:abrir <slug>` |
-| Semear o cofre de provas | tool `ensure_brain_vault` (idempotente; ao ativar um project — semeia provas/fontes sem ligar fact-checking) |
+| Semear cofre de provas + catálogo de produtos | tool `ensure_brain_vault` (idempotente; ao ativar um project — semeia provas/fontes/produtos sem ligar fact-checking) |
 | Project ativo / contexto | tools `get_active_project` / `set_active_project` — `/conversion-agent:whereami` |
 | Gravar output | tools `project_save_and_url` (1 arquivo) / `project_save_batch` (atômico multi-arquivo) |
 | Buscar na wiki | tools `search_project`, `read_brain`, `get_content`, `get_backlinks` |

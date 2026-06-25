@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "conversion-agent",
-  "version": "0.4.16",
+  "version": "0.4.17",
   "description": "Marketplace público do Conversion Agent — engine SEO proprietária da Conversion distribuída como plugin do Claude Code.",
   "owner": {
     "name": "Agência Conversion",
@@ -12,7 +12,7 @@
       "name": "conversion-agent",
       "description": "Engine SEO da Conversion — diagnóstico, briefing, factcheck, redação, revisão, coesão, cluster, brain-update e monitor de sync plug-in-first. Entrada oficial via /conversion-agent:conversion-start.",
       "source": "./plugins/conversion-agent",
-      "version": "0.4.16",
+      "version": "0.4.17",
       "author": {
         "name": "Agência Conversion"
       },
