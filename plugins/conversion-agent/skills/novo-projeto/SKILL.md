@@ -9,7 +9,12 @@ description: >-
 
 # /conversion-agent:novo-projeto [<slug> | <ws>/<proj>] [--name "Nome"]
 
-Atalho pro `conversion proj create`.
+Cria um novo project no backend.
+
+> **Nota:** o CLI `conversion` foi descontinuado e ainda **não há MCP tool**
+> de criação de project. A criação em si é feita no app web
+> (agent.conversion.com.br) por um owner do workspace; esta skill orienta o
+> usuário e, depois de criado, materializa localmente via `materialize_project`.
 
 ## Comportamento
 
@@ -20,13 +25,12 @@ Atalho pro `conversion proj create`.
 2. **Validações**:
    - Slug do project: mesmas regras (kebab-case 2-80, sem acento). Se inválido, explique.
    - Nome: 1-200 chars.
-3. Execute Bash `conversion proj create <ws>/<proj> --name "<nome>"`.
-4. **Tratamento de erro**:
-   - 409: "`<proj>` já existe em `<ws>`. Outro slug?".
-   - 403: "Você não é owner de `<ws>`. Pra criar project, peça pra um owner do ws."
-5. **Sucesso**: confirme + sugira próximo passo:
-   - *"✓ Project `<ws>/<proj>` criado no backend. Materializar localmente agora? `conversion pull <ws>/<proj>` — ou eu disparo pra você."*
-6. Se usuário aceitar pull, execute Bash. Após pull bem-sucedido, sugira `set_active_project` MCP pra ativar.
+3. **Criação (app web)**: oriente o usuário a criar o project em
+   agent.conversion.com.br (um owner do workspace faz isso). Se ele não for
+   owner: "Pra criar project, peça pra um owner de `<ws>`."
+4. **Após criado no backend**: materialize localmente com a MCP tool
+   `materialize_project` (`ws_slug`/`proj_slug`, `set_active: true` para já
+   ativar). Confirme em 1 linha com o path materializado.
 
 ## Regras
 

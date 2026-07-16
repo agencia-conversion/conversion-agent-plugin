@@ -20,8 +20,9 @@ If any required parameter is missing, ask once and stop.
 ## 2. Confirme o project-root + leia brain/ (Passo 0)
 
 O CWD atual precisa ser um project-root (contém
-`.conversion/manifest.json`). Se não for, PARE e peça ao usuário para
-rodar `conversion pull <ws>/<proj>` (ou `cd` para o project-root).
+`.conversion/manifest.json`). Se não for, PARE e materialize o project
+pela MCP tool `materialize_project`, ou peça ao usuário para `cd` até o
+project-root.
 
 **ANTES de qualquer pesquisa ou output**, invoque a MCP tool
 `conversion-context:read_brain` (sem argumentos) para carregar os 5
@@ -87,11 +88,11 @@ Execute the five phases in order:
 ## 5. Output (MANDATORY file write via MCP)
 
 Use `conversion-context:project_save_and_url` — a tool já faz commit +
-push atomicamente e retorna a URL web no campo `url`. NÃO rode
-`conversion push` manualmente.
+push atomicamente e retorna a URL web no campo `url`. Não existe passo
+manual de push (o CLI `conversion` foi descontinuado).
 
 Se a tool retornar `ok: false, error: 'conflict'`: avise o usuário,
-siga o hint (rodar `conversion pull`), e tente de novo.
+siga o hint (rematerializar via `materialize_project`), e tente de novo.
 
 Respond with a short report (10-15 lines):
 

@@ -54,27 +54,27 @@ Execute via Bash. **Segurança:** nunca interpole o texto do membro
 ou monte a invocação com aspas simples ao redor das partes literais e
 escape de aspas dentro do conteúdo controlado pelo membro.
 
-Padrão recomendado (delegando aspas ao oclif via STDIN-friendly flags):
+Padrão recomendado — **crie o scaffold via Write tool** (o CLI `conversion`
+foi descontinuado). Como o Write tool não passa por shell, basta inserir os
+valores já validados diretamente no conteúdo dos arquivos.
 
-```bash
-SLUG='<slug-validado-aqui>' \
-DESCRIPTION='<descricao-com-aspas-simples-internas-escapadas>' \
-  conversion skill new "$SLUG" --description "$DESCRIPTION"
-```
+Crie dois arquivos:
 
-Esse comando da CLI Conversion (≥0.1.36) cria
-`~/.claude/skills/<slug>/SKILL.md` + `~/.claude/skills/<slug>/skill.json`
-com schema validado por Zod. Se o comando falhar com "slug inválido",
-volte ao membro pra pegar slug novo. Se falhar com "já existe",
-pergunte se ele quer `--force` (sobrescreve) ou outro slug.
+1. `~/.claude/skills/<slug>/SKILL.md` — frontmatter YAML (`name`,
+   `description` YAML-quoted se contém `:` `"` `-` `#`) + as 3 seções
+   `## When to use`, `## Steps`, `## Output`.
+2. `~/.claude/skills/<slug>/skill.json` — metadados (`name`, `description`,
+   `version`) conforme o schema Zod da Conversion.
+
+Se `~/.claude/skills/<slug>/` já existir, pergunte ao membro se quer
+sobrescrever ou usar outro slug.
 
 Depois de scaffoldar:
 
-1. **Leia o `SKILL.md` recém-criado** pra ver o template (`localSkillDir(slug) + "/SKILL.md"`).
-2. **Escreva o conteúdo real da skill** dentro das seções `## When to use`,
-   `## Steps`, `## Output`, baseado no problema da Fase 1. Ferramentas
-   úteis pro corpo: `Edit` ou `Write`. Mantenha a estrutura, só preencha
-   o miolo. **Não toque no `skill.json`** — ele é gerenciado pelo CLI.
+1. **Escreva o conteúdo real da skill** dentro das seções `## When to use`,
+   `## Steps`, `## Output`, baseado no problema da Fase 1 (Write/Edit).
+2. **Garanta que `SKILL.md` e `skill.json` batem** (`name`/`description`
+   iguais) — sem o CLI, a consistência é sua responsabilidade.
 3. **Confirme com o membro** mostrando o caminho final e instrução de uso:
    "Pronto. Sua skill está em `~/.claude/skills/<slug>/`. Reabra o Claude
    Code numa pasta de hub Conversion e invoque com `/<slug>`."
@@ -161,17 +161,17 @@ Independente do tier, antes de dizer "pronto":
 
 3. **Se a skill chama MCP tools**, mencione os requisitos:
    - Plugin Conversion deve estar instalado.
-   - Membro deve estar logado (`conversion login`).
-   - Sessão Claude Code deve estar num diretório de hub Conversion (CLI
-     pra MCP saber qual workspace usar).
+   - Membro deve estar logado (MCP tool `auth_login_start` / `auth_login_poll`).
+   - Sessão Claude Code deve estar num diretório de hub Conversion (pra o
+     MCP saber qual workspace usar).
 
 ## Guardrail (anti-loop)
 
 - **Não invoque skill-author recursivamente.** Se o membro pedir "cria
   uma skill que cria skills", explique que skill-author já é isso.
-- **Não escreva o `skill.json` à mão.** Sempre via `conversion skill new`.
-  O comando faz validação Zod + atomic write — escrever direto vai
-  falhar no schema.
+- **Mantenha `skill.json` consistente com o `SKILL.md`.** O CLI foi
+  descontinuado, então escreva ambos via Write tool e garanta que
+  `name`/`description` batem e seguem o schema Zod da Conversion.
 - **Não inicie scaffolding antes da Fase 1.** Sem problema claro a skill
   vira lixo no graveyard do `~/.claude/skills/`. Resista à pressão de
   "anda logo, só cria."

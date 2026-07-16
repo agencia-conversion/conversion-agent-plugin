@@ -53,7 +53,8 @@ The tool returns a `SkillContextV1` envelope. On success (`ok: true`), the
 
 On error (`ok: false`), surface the `hint` to the user verbatim and stop. The
 most common one is `not_authenticated` → "Você precisa autenticar primeiro.
-Rode `conversion login` no terminal."
+Rode a MCP tool `auth_login_start` (ou a skill `/conversion-agent:conversion-start`)
+e conclua o magic-link."
 
 ## 3. Apply the methodology
 
@@ -108,8 +109,9 @@ are sub-skills orchestrated by the redator.
 ## 5. Pré-requisito: estar num project
 
 Antes de gravar o YAML, confirme que o CWD é um project-root (contém
-`.conversion/manifest.json`). Se não for, PARE e peça ao usuário para
-rodar `conversion pull <ws>/<proj>` (ou `cd` para o project-root).
+`.conversion/manifest.json`). Se não for, PARE e materialize o project
+pela MCP tool `materialize_project` (cria o `.conversion-hub.json` e baixa
+os arquivos), ou peça ao usuário para `cd` até o project-root.
 Paths relativos ao CWD:
 - Artigo avulso: `conteudo/<slug>.yaml`.
 - Notícia: `news-articles/<batch>/news-<xx>-<slug>.yaml`.
@@ -127,13 +129,16 @@ Atualize `workflow.etapa` conforme o progresso:
 - Ao setar `workflow.status=finalizado`, mantenha `workflow.etapa:
   coesao` (última etapa executada).
 
-**Push implícito + URL web**: depois do Write, chame a ferramenta Bash:
-`cd <project-root> && conversion push`. Extraia a URL web da saída do
-push (formato
-`https://agent.conversion.com.br/app/p/<ws_uuid>/<proj_uuid>/<path>`).
+**Push implícito + URL web**: grave o YAML final pela MCP tool
+`project_save_and_url` (passando `ws_slug` + `proj_slug` do project ativo —
+via `get_active_project` se não souber — e o path relativo). Ela grava o
+arquivo local, faz commit + push atomicamente e retorna a URL web no campo
+`url` (formato
+`https://agent.conversion.com.br/app/p/<ws_uuid>/<proj_uuid>/<path>`); use
+essa URL diretamente. NÃO rode `conversion push` — o CLI foi descontinuado.
 
-Se `conversion push` falhar (ex: 409 conflict), avise o usuário e sugira
-`conversion pull` + re-executar.
+Se `project_save_and_url` falhar (ex: 409 conflict), avise o usuário e
+sugira rematerializar o project (`materialize_project`) + re-executar.
 
 Respond ONLY with:
 
