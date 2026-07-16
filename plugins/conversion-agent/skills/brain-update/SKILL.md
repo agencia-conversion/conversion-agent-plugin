@@ -29,8 +29,8 @@ não dispara outra — previne loop infinito.
 ## 1. Confirme o project-root
 
 O CWD atual precisa ser um project-root (contém `.conversion/manifest.json`).
-Se não for, PARE e peça ao usuário para rodar `conversion pull <ws>/<proj>`
-ou `cd` para o project-root.
+Se não for, PARE e materialize o project pela MCP tool `materialize_project`,
+ou peça ao usuário para `cd` até o project-root.
 
 ## 2. Leia o brain atual
 

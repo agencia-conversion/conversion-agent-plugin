@@ -68,8 +68,8 @@ Adjust density target by `workflow.tipo`:
 ## 4. Pré-requisito: estar num project
 
 Antes de gravar o YAML refinado, confirme que o CWD é um project-root
-(contém `.conversion/manifest.json`). Se não for, PARE e peça ao usuário
-para rodar `conversion pull <ws>/<proj>`. O path de entrada é relativo
+(contém `.conversion/manifest.json`). Se não for, PARE e materialize o
+project pela MCP tool `materialize_project`. O path de entrada é relativo
 ao CWD (ex: `conteudo/<slug>.yaml`).
 
 ## 5. Output (MANDATORY file update + push)
@@ -85,13 +85,16 @@ Atualize `workflow.etapa: coesao` ao concluir sem bloqueios — mesmo que
 `workflow.status` permaneça `rascunho`, o campo `etapa` reflete a última
 etapa executada com sucesso.
 
-**Push implícito + URL web**: depois do Write/Edit, chame a ferramenta
-Bash: `cd <project-root> && conversion push`. Extraia a URL web da saída
-do push (formato
+**Push implícito + URL web**: grave o YAML refinado pela MCP tool
+`project_save_and_url` (passando `ws_slug` + `proj_slug` do project ativo —
+via `get_active_project` se não souber — e o path relativo). Ela grava o
+arquivo local, faz commit + push atomicamente e retorna a URL web no campo
+`url` (formato
 `https://agent.conversion.com.br/app/p/<ws_uuid>/<proj_uuid>/<path>`).
+NÃO rode `conversion push` — o CLI foi descontinuado.
 
-Se `conversion push` falhar (ex: 409 conflict), avise o usuário e sugira
-`conversion pull` + re-executar.
+Se `project_save_and_url` falhar (ex: 409 conflict), avise o usuário e
+sugira rematerializar o project (`materialize_project`) + re-executar.
 
 Respond with a short report (never dump the article):
 

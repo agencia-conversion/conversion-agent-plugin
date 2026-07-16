@@ -28,7 +28,8 @@ Se algum input crítico estiver ambíguo, pergunte UMA vez e pare.
 ## 2. Pré-requisito: estar num project
 
 CWD precisa ser project-root (`.conversion/manifest.json`). Se não for,
-PARE e peça `conversion pull <ws>/<proj>` (ou `cd` para project-root).
+PARE e materialize via MCP tool `materialize_project` (ou `cd` para
+project-root).
 
 ## 3. Fetch da metodologia
 
@@ -121,7 +122,7 @@ Nunca despeje o frontmatter ou a tabela completa no chat. O usuário
 abre o arquivo via URL web.
 
 Se a tool retornar `ok: false, error: 'conflict'`: avise o usuário e
-sugira `conversion pull` antes de retentar.
+sugira rematerializar via `materialize_project` antes de retentar.
 
 ## 6. Quando invocada por /briefing (sub-skill)
 

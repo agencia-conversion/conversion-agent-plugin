@@ -21,8 +21,9 @@ Snapshot consolidado do contexto.
 3. **Recentes**: chame `search_project({ ws_slug, proj_slug, limit: 5 })`.
    Lista os 5 últimos deliverables (qualquer tipo) com title + status +
    URL editor.
-4. **Status local**: Bash `conversion status` (no project-root). Resumo
-   curto: "X arquivos modificados localmente" ou "limpo".
+4. **Status local**: chame a MCP tool `sync_status`. Resumo curto: "X
+   arquivos ainda não publicados no backend (pendingUpload)" ou "limpo".
+   Se `mode: observe`, lembre que o sync automático não publica sozinho.
 
 ## Saída esperada
 

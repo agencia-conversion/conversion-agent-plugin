@@ -15,20 +15,20 @@ Atalho de navegação por workspace.
 
 1. **Sem arg**:
    - Chame `get_active_project` MCP pra saber estado atual.
-   - Execute Bash `conversion workspaces` (ou alternativa de listagem
-     CLI). Apresente lista numerada com indicador `●` no ativo.
+   - Chame a MCP tool `list_workspaces_projects` (retorna workspaces +
+     projects). Apresente lista numerada com indicador `●` no ativo.
    - Convide: *"Pra trocar, use `/workspace <slug>` ou diga o nome."*
 
 2. **Com arg `<ws-slug>`**:
-   - Resolver: ws-slug existe? Lista projects desse ws (chame
-     `conversion projects --ws <slug>` ou backend MCP equivalente).
+   - Resolver: ws-slug existe? Lista projects desse ws (via
+     `list_workspaces_projects`).
    - Se ws tem projects materializados localmente → não troca workspace
      direto; em vez disso, oferece pickear project: *"Workspace `<slug>`
      tem N projects materializados aqui — qual ativar? (lista)"*. Após
      escolher → `set_active_project` MCP.
    - Se ws não tem projects materializados localmente → "Workspace
-     `<slug>` não tem projects neste hub. Rode `conversion pull
-     <slug>/<proj>` pra materializar."
+     `<slug>` não tem projects neste hub. Use `/pull <slug>/<proj>`
+     (MCP tool `materialize_project`) pra materializar."
 
 3. **Cross-workspace**: nunca troque silenciosamente. Sempre confirme:
    *"Sair de `<ws-atual>/<proj-atual>` pra `<novo-ws>`?"*. Sticky
