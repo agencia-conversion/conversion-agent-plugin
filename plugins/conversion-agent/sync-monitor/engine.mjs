@@ -2,7 +2,13 @@ import { createHash } from "node:crypto";
 import { chmod, mkdir, readFile, readdir, rename, stat, unlink, writeFile, } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join, relative, sep } from "node:path";
-const BACKEND_URL = (process.env["CONVERSION_BACKEND_URL"] ?? "https://agent.conversion.com.br").replace(/\/+$/u, "");
+const BACKEND_URL = (process.env["CONVERSION_SYNC_TARGET"] === "searchhub"
+    ? process.env["CONVERSION_SEARCHHUB_BACKEND_URL"] ?? ""
+    : process.env["CONVERSION_BACKEND_URL"] ?? "https://agent.conversion.com.br").replace(/\/+$/u, "");
+function backendProtectionHeaders() {
+    const secret = process.env["VERCEL_AUTOMATION_BYPASS_SECRET"]?.trim();
+    return secret ? { "x-vercel-protection-bypass": secret } : {};
+}
 const ZERO_TREE_HASH = "0".repeat(64);
 const PROXY_THRESHOLD_BYTES = 4 * 1024 * 1024;
 const PATH_MAX_LENGTH = 512;
@@ -435,6 +441,7 @@ async function authedFetch(auth, path, init) {
         headers: {
             ...init.headers,
             authorization: `Bearer ${auth.token}`,
+            ...backendProtectionHeaders(),
         },
     });
     const renewed = response.headers.get("x-renewed-token");

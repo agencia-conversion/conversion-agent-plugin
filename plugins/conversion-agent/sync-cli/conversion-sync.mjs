@@ -227,9 +227,14 @@ async function inspectProject(project) {
 async function fetchRemoteConfig(auth) {
   if (!auth.authenticated || !auth.token) return null;
   const backendUrl = (process.env.CONVERSION_BACKEND_URL ?? DEFAULT_BACKEND_URL).replace(/\/+$/, "");
+  const protectionBypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
   try {
     const res = await fetch(`${backendUrl}/api/v1/sync/config`, {
-      headers: { authorization: `Bearer ${auth.token}`, accept: "application/json" },
+      headers: {
+        authorization: `Bearer ${auth.token}`,
+        accept: "application/json",
+        ...(protectionBypass ? { "x-vercel-protection-bypass": protectionBypass } : {}),
+      },
     });
     const body = await res.json().catch(() => null);
     return { ok: res.ok, status: res.status, body };

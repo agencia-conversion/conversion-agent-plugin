@@ -7,9 +7,9 @@ var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
-var __export = (target, all) => {
+var __export = (target2, all) => {
   for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
+    __defProp(target2, name, { get: all[name], enumerable: true });
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
@@ -19,12 +19,12 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+var __toESM = (mod, isNodeMode, target2) => (target2 = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
   // If the importer is in node compatibility mode or this is not an ESM
   // file that has been converted to a CommonJS file using a Babel-
   // compatible transform (i.e. "__esModule" has not been set), then set
   // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target2, "default", { value: mod, enumerable: true }) : target2,
   mod
 ));
 
@@ -3588,57 +3588,57 @@ var require_fast_uri = __commonJS({
       return serialize(resolved, schemelessOptions);
     }
     function resolveComponent(base, relative3, options, skipNormalization) {
-      const target = {};
+      const target2 = {};
       if (!skipNormalization) {
         base = parse3(serialize(base, options), options);
         relative3 = parse3(serialize(relative3, options), options);
       }
       options = options || {};
       if (!options.tolerant && relative3.scheme) {
-        target.scheme = relative3.scheme;
-        target.userinfo = relative3.userinfo;
-        target.host = relative3.host;
-        target.port = relative3.port;
-        target.path = removeDotSegments(relative3.path || "");
-        target.query = relative3.query;
+        target2.scheme = relative3.scheme;
+        target2.userinfo = relative3.userinfo;
+        target2.host = relative3.host;
+        target2.port = relative3.port;
+        target2.path = removeDotSegments(relative3.path || "");
+        target2.query = relative3.query;
       } else {
         if (relative3.userinfo !== void 0 || relative3.host !== void 0 || relative3.port !== void 0) {
-          target.userinfo = relative3.userinfo;
-          target.host = relative3.host;
-          target.port = relative3.port;
-          target.path = removeDotSegments(relative3.path || "");
-          target.query = relative3.query;
+          target2.userinfo = relative3.userinfo;
+          target2.host = relative3.host;
+          target2.port = relative3.port;
+          target2.path = removeDotSegments(relative3.path || "");
+          target2.query = relative3.query;
         } else {
           if (!relative3.path) {
-            target.path = base.path;
+            target2.path = base.path;
             if (relative3.query !== void 0) {
-              target.query = relative3.query;
+              target2.query = relative3.query;
             } else {
-              target.query = base.query;
+              target2.query = base.query;
             }
           } else {
             if (relative3.path[0] === "/") {
-              target.path = removeDotSegments(relative3.path);
+              target2.path = removeDotSegments(relative3.path);
             } else {
               if ((base.userinfo !== void 0 || base.host !== void 0 || base.port !== void 0) && !base.path) {
-                target.path = "/" + relative3.path;
+                target2.path = "/" + relative3.path;
               } else if (!base.path) {
-                target.path = relative3.path;
+                target2.path = relative3.path;
               } else {
-                target.path = base.path.slice(0, base.path.lastIndexOf("/") + 1) + relative3.path;
+                target2.path = base.path.slice(0, base.path.lastIndexOf("/") + 1) + relative3.path;
               }
-              target.path = removeDotSegments(target.path);
+              target2.path = removeDotSegments(target2.path);
             }
-            target.query = relative3.query;
+            target2.query = relative3.query;
           }
-          target.userinfo = base.userinfo;
-          target.host = base.host;
-          target.port = base.port;
+          target2.userinfo = base.userinfo;
+          target2.host = base.host;
+          target2.port = base.port;
         }
-        target.scheme = base.scheme;
+        target2.scheme = base.scheme;
       }
-      target.fragment = relative3.fragment;
-      return target;
+      target2.fragment = relative3.fragment;
+      return target2;
     }
     function equal(uriA, uriB, options) {
       if (typeof uriA === "string") {
@@ -7602,8 +7602,8 @@ var ZodType = class {
       description
     });
   }
-  pipe(target) {
-    return ZodPipeline.create(this, target);
+  pipe(target2) {
+    return ZodPipeline.create(this, target2);
   }
   readonly() {
     return ZodReadonly.create(this);
@@ -10901,8 +10901,8 @@ function defineLazy(object3, key, getter) {
 function objectClone(obj) {
   return Object.create(Object.getPrototypeOf(obj), Object.getOwnPropertyDescriptors(obj));
 }
-function assignProp(target, prop, value) {
-  Object.defineProperty(target, prop, {
+function assignProp(target2, prop, value) {
+  Object.defineProperty(target2, prop, {
     value,
     writable: true,
     enumerable: true,
@@ -11071,35 +11071,35 @@ function normalizeParams(_params) {
   return params;
 }
 function createTransparentProxy(getter) {
-  let target;
+  let target2;
   return new Proxy({}, {
     get(_, prop, receiver) {
-      target ?? (target = getter());
-      return Reflect.get(target, prop, receiver);
+      target2 ?? (target2 = getter());
+      return Reflect.get(target2, prop, receiver);
     },
     set(_, prop, value, receiver) {
-      target ?? (target = getter());
-      return Reflect.set(target, prop, value, receiver);
+      target2 ?? (target2 = getter());
+      return Reflect.set(target2, prop, value, receiver);
     },
     has(_, prop) {
-      target ?? (target = getter());
-      return Reflect.has(target, prop);
+      target2 ?? (target2 = getter());
+      return Reflect.has(target2, prop);
     },
     deleteProperty(_, prop) {
-      target ?? (target = getter());
-      return Reflect.deleteProperty(target, prop);
+      target2 ?? (target2 = getter());
+      return Reflect.deleteProperty(target2, prop);
     },
     ownKeys(_) {
-      target ?? (target = getter());
-      return Reflect.ownKeys(target);
+      target2 ?? (target2 = getter());
+      return Reflect.ownKeys(target2);
     },
     getOwnPropertyDescriptor(_, prop) {
-      target ?? (target = getter());
-      return Reflect.getOwnPropertyDescriptor(target, prop);
+      target2 ?? (target2 = getter());
+      return Reflect.getOwnPropertyDescriptor(target2, prop);
     },
     defineProperty(_, prop, descriptor) {
-      target ?? (target = getter());
-      return Reflect.defineProperty(target, prop, descriptor);
+      target2 ?? (target2 = getter());
+      return Reflect.defineProperty(target2, prop, descriptor);
     }
   });
 }
@@ -15254,15 +15254,15 @@ function _stringFormat(Class2, format, fnOrRegex, _params = {}) {
 
 // ../../../node_modules/.pnpm/zod@4.3.6/node_modules/zod/v4/core/to-json-schema.js
 function initializeContext(params) {
-  let target = params?.target ?? "draft-2020-12";
-  if (target === "draft-4")
-    target = "draft-04";
-  if (target === "draft-7")
-    target = "draft-07";
+  let target2 = params?.target ?? "draft-2020-12";
+  if (target2 === "draft-4")
+    target2 = "draft-04";
+  if (target2 === "draft-7")
+    target2 = "draft-07";
   return {
     processors: params.processors ?? {},
     metadataRegistry: params?.metadata ?? globalRegistry,
-    target,
+    target: target2,
     unrepresentable: params?.unrepresentable ?? "throw",
     override: params?.override ?? (() => {
     }),
@@ -15597,8 +15597,8 @@ var createToJSONSchemaMethod = (schema, processors = {}) => (params) => {
   return finalize(ctx, schema);
 };
 var createStandardJSONSchemaMethod = (schema, io, processors = {}) => (params) => {
-  const { libraryOptions, target } = params ?? {};
-  const ctx = initializeContext({ ...libraryOptions ?? {}, target, io, processors });
+  const { libraryOptions, target: target2 } = params ?? {};
+  const ctx = initializeContext({ ...libraryOptions ?? {}, target: target2, io, processors });
   process2(schema, ctx);
   extractDefs(ctx, schema);
   return finalize(ctx, schema);
@@ -16499,7 +16499,7 @@ var ZodType2 = /* @__PURE__ */ $constructor("ZodType", (inst, def) => {
   inst.default = (def2) => _default(inst, def2);
   inst.prefault = (def2) => prefault(inst, def2);
   inst.catch = (params) => _catch(inst, params);
-  inst.pipe = (target) => pipe(inst, target);
+  inst.pipe = (target2) => pipe(inst, target2);
   inst.readonly = () => readonly(inst);
   inst.describe = (description) => {
     const cl = inst.clone();
@@ -20825,11 +20825,25 @@ var StdioServerTransport = class {
   }
 };
 
-// src/tools/auth.ts
-import { randomBytes } from "crypto";
-
 // src/lib/config.ts
 var BACKEND_URL = (process.env["CONVERSION_BACKEND_URL"] ?? "https://agent.conversion.com.br").replace(/\/+$/u, "");
+var SEARCHHUB_BACKEND_URL = process.env["CONVERSION_SEARCHHUB_BACKEND_URL"] ? process.env["CONVERSION_SEARCHHUB_BACKEND_URL"].replace(/\/+$/u, "") : null;
+function toolsetMode() {
+  const value = process.env["CONVERSION_TOOLSET_MODE"]?.trim().toLowerCase();
+  return value === "legacy" || value === "searchhub" || value === "parallel" ? value : "parallel";
+}
+function requireSearchHubBackendUrl() {
+  if (!SEARCHHUB_BACKEND_URL) {
+    throw new Error(
+      "CONVERSION_SEARCHHUB_BACKEND_URL is required for searchhub_* tools."
+    );
+  }
+  return SEARCHHUB_BACKEND_URL;
+}
+function backendProtectionHeaders() {
+  const secret = process.env["VERCEL_AUTOMATION_BYPASS_SECRET"]?.trim();
+  return secret ? { "x-vercel-protection-bypass": secret } : {};
+}
 var KEYCHAIN_SERVICE = "conversion-agent";
 var KEYCHAIN_SERVICE_LEGACY = "conversion-skills";
 var EMAIL_SELECTOR = process.env["CONVERSION_EMAIL"];
@@ -20837,19 +20851,218 @@ var PLUGIN_DATA_DIR = process.env["CLAUDE_PLUGIN_DATA"];
 var CACHE_TTL_MS = 5 * 60 * 1e3;
 var FETCH_TIMEOUT_MS = 3e4;
 
+// src/lib/hub.ts
+import { randomUUID } from "crypto";
+import { access, mkdir, readFile, rename, writeFile } from "fs/promises";
+import { dirname, isAbsolute, join, parse as parsePath, resolve } from "path";
+var HUB_FILE = ".conversion-hub.json";
+var SEARCHHUB_HUB_FILE = ".conversion-searchhub-hub.json";
+var ProjectNotMaterializedError = class extends Error {
+  ws_slug;
+  proj_slug;
+  constructor(ws_slug, proj_slug) {
+    super(
+      `Project '${ws_slug}/${proj_slug}' n\xE3o est\xE1 materializado neste hub. Use a ferramenta \`materialize_project\` primeiro.`
+    );
+    this.name = "ProjectNotMaterializedError";
+    this.ws_slug = ws_slug;
+    this.proj_slug = proj_slug;
+  }
+};
+async function fileExists(path) {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+async function findHubRoot(cwd, hubFile = HUB_FILE) {
+  let current = resolve(cwd);
+  const fsRoot = parsePath(current).root;
+  for (let i = 0; i < 64; i += 1) {
+    if (await fileExists(join(current, hubFile))) return current;
+    const parent = dirname(current);
+    if (parent === current || current === fsRoot) return null;
+    current = parent;
+  }
+  return null;
+}
+function isHubShape(v) {
+  if (!v || typeof v !== "object") return false;
+  const o = v;
+  if (o["version"] !== 1) return false;
+  if (typeof o["created_at"] !== "string") return false;
+  if (typeof o["updated_at"] !== "string") return false;
+  if (!Array.isArray(o["projects"])) return false;
+  for (const p of o["projects"]) {
+    if (!p || typeof p !== "object") return false;
+    const entry = p;
+    if (typeof entry["ws_slug"] !== "string") return false;
+    if (typeof entry["proj_slug"] !== "string") return false;
+    if (typeof entry["ws_id"] !== "string") return false;
+    if (typeof entry["proj_id"] !== "string") return false;
+    if (typeof entry["path"] !== "string") return false;
+  }
+  if ("active" in o) {
+    const a = o["active"];
+    if (a !== null && a !== void 0) {
+      if (typeof a !== "object") return false;
+      const active = a;
+      if (typeof active["ws_slug"] !== "string") return false;
+      if (typeof active["proj_slug"] !== "string") return false;
+    }
+  }
+  return true;
+}
+function normalizeHubConfig(raw) {
+  const rawActive = raw.active;
+  const active = rawActive && typeof rawActive === "object" ? { ws_slug: rawActive.ws_slug, proj_slug: rawActive.proj_slug } : null;
+  return {
+    version: raw.version,
+    created_at: raw.created_at,
+    updated_at: raw.updated_at,
+    projects: raw.projects,
+    active
+  };
+}
+async function readHub(hubRoot, hubFile = HUB_FILE) {
+  const path = join(hubRoot, hubFile);
+  let raw;
+  try {
+    raw = await readFile(path, "utf8");
+  } catch {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    return isHubShape(parsed) ? normalizeHubConfig(parsed) : null;
+  } catch {
+    return null;
+  }
+}
+async function resolveProjectFromHub(hubRoot, ws_slug, proj_slug, hubFile = HUB_FILE) {
+  const config2 = await readHub(hubRoot, hubFile);
+  if (!config2) return null;
+  const entry = config2.projects.find(
+    (p) => p.ws_slug === ws_slug && p.proj_slug === proj_slug
+  );
+  if (!entry) return null;
+  return {
+    ws_id: entry.ws_id,
+    proj_id: entry.proj_id,
+    path: entry.path,
+    absolute_path: join(hubRoot, entry.path)
+  };
+}
+async function getActiveProject(hubRoot, hubFile = HUB_FILE) {
+  const config2 = await readHub(hubRoot, hubFile);
+  if (!config2) return null;
+  if (!config2.active) return null;
+  const { ws_slug, proj_slug } = config2.active;
+  const entry = config2.projects.find(
+    (p) => p.ws_slug === ws_slug && p.proj_slug === proj_slug
+  );
+  if (!entry) return null;
+  return {
+    ws_slug: entry.ws_slug,
+    proj_slug: entry.proj_slug,
+    ws_id: entry.ws_id,
+    proj_id: entry.proj_id,
+    path: entry.path,
+    absolute_path: join(hubRoot, entry.path)
+  };
+}
+async function setActiveProject(hubRoot, ws_slug, proj_slug, hubFile = HUB_FILE) {
+  if (!isAbsolute(hubRoot)) {
+    throw new Error(`setActiveProject requer caminho absoluto, recebi: ${hubRoot}`);
+  }
+  const current = await readHub(hubRoot, hubFile);
+  if (!current) {
+    throw new Error(
+      `Hub config inv\xE1lido em ${hubRoot}. Use a ferramenta \`materialize_project\` primeiro.`
+    );
+  }
+  const exists = current.projects.some(
+    (p) => p.ws_slug === ws_slug && p.proj_slug === proj_slug
+  );
+  if (!exists) {
+    throw new ProjectNotMaterializedError(ws_slug, proj_slug);
+  }
+  const next = {
+    ...current,
+    updated_at: (/* @__PURE__ */ new Date()).toISOString(),
+    active: { ws_slug, proj_slug }
+  };
+  const path = join(hubRoot, hubFile);
+  await writeFile(path, JSON.stringify(next, null, 2) + "\n", "utf8");
+  return next;
+}
+async function upsertHubProject(hubRoot, entry, hubFile = HUB_FILE) {
+  const now = (/* @__PURE__ */ new Date()).toISOString();
+  const current = await readHub(hubRoot, hubFile) ?? {
+    version: 1,
+    created_at: now,
+    updated_at: now,
+    projects: [],
+    active: null
+  };
+  const projects = current.projects.filter(
+    (project) => !(project.ws_slug === entry.ws_slug && project.proj_slug === entry.proj_slug)
+  );
+  projects.push(entry);
+  projects.sort(
+    (a, b) => `${a.ws_slug}/${a.proj_slug}`.localeCompare(`${b.ws_slug}/${b.proj_slug}`)
+  );
+  const next = { ...current, updated_at: now, projects };
+  await mkdir(hubRoot, { recursive: true });
+  const destination = join(hubRoot, hubFile);
+  const temporary = `${destination}.${process.pid}.${randomUUID()}.tmp`;
+  await writeFile(temporary, JSON.stringify(next, null, 2) + "\n", "utf8");
+  await rename(temporary, destination);
+  return next;
+}
+
+// src/lib/toolset.ts
+var LEGACY_PROJECT_TOOL_NAMES = /* @__PURE__ */ new Set([
+  "project_save_and_url",
+  "project_save_batch",
+  "ensure_brain_vault",
+  "list_workspaces_projects",
+  "materialize_project",
+  "get_active_project",
+  "set_active_project",
+  "sync_status",
+  "sync_doctor",
+  "sync_pause",
+  "sync_resume",
+  "sync_repair"
+]);
+var SEARCHHUB_PROJECT_TOOL_NAMES = new Set(
+  [...LEGACY_PROJECT_TOOL_NAMES].map((name) => `searchhub_${name}`)
+);
+function isToolEnabled(name, mode) {
+  if (LEGACY_PROJECT_TOOL_NAMES.has(name)) return mode !== "searchhub";
+  if (SEARCHHUB_PROJECT_TOOL_NAMES.has(name)) return mode !== "legacy";
+  return true;
+}
+
+// src/tools/auth.ts
+import { randomBytes } from "crypto";
+
 // src/lib/keychain.ts
-import { mkdir, readFile, rename, writeFile, chmod } from "fs/promises";
+import { mkdir as mkdir2, readFile as readFile2, rename as rename2, writeFile as writeFile2, chmod } from "fs/promises";
 import { homedir } from "os";
-import { dirname, join } from "path";
-var CANONICAL_PLUGIN_DATA_DIR = process.env["CONVERSION_PLUGIN_DATA_DIR"] ?? join(homedir(), ".conversion", "plugin-data");
+import { dirname as dirname2, join as join2 } from "path";
+var CANONICAL_PLUGIN_DATA_DIR = process.env["CONVERSION_PLUGIN_DATA_DIR"] ?? join2(homedir(), ".conversion", "plugin-data");
 function pluginDataDir() {
-  return PLUGIN_DATA_DIR ?? join(homedir(), ".conversion", "plugin-data");
+  return PLUGIN_DATA_DIR ?? join2(homedir(), ".conversion", "plugin-data");
 }
 function pluginAuthPath() {
-  return join(pluginDataDir(), "auth.json");
+  return join2(pluginDataDir(), "auth.json");
 }
 function canonicalPluginAuthPath() {
-  return join(CANONICAL_PLUGIN_DATA_DIR, "auth.json");
+  return join2(CANONICAL_PLUGIN_DATA_DIR, "auth.json");
 }
 function authPaths() {
   return [.../* @__PURE__ */ new Set([pluginAuthPath(), canonicalPluginAuthPath()])];
@@ -20862,7 +21075,7 @@ function isAuthFile(value) {
 async function readPluginAuth() {
   for (const path of authPaths()) {
     try {
-      const parsed = JSON.parse(await readFile(path, "utf8"));
+      const parsed = JSON.parse(await readFile2(path, "utf8"));
       if (!isAuthFile(parsed)) continue;
       return {
         email: parsed.email,
@@ -20883,10 +21096,10 @@ async function savePluginAuth(input) {
   }
 }
 async function savePluginAuthAt(path, input) {
-  await mkdir(dirname(path), { recursive: true, mode: 448 });
-  await chmod(dirname(path), 448).catch(() => void 0);
+  await mkdir2(dirname2(path), { recursive: true, mode: 448 });
+  await chmod(dirname2(path), 448).catch(() => void 0);
   const tmp = `${path}.${process.pid}.tmp`;
-  await writeFile(
+  await writeFile2(
     tmp,
     `${JSON.stringify(
       {
@@ -20902,7 +21115,7 @@ async function savePluginAuthAt(path, input) {
     { encoding: "utf8", mode: 384 }
   );
   await chmod(tmp, 384).catch(() => void 0);
-  await rename(tmp, path);
+  await rename2(tmp, path);
 }
 async function findKeychainCredentials() {
   let keytar = null;
@@ -20999,7 +21212,11 @@ async function runAuthLoginStart(input) {
     const callbackUrl = input.callback_url ?? defaultWebCallbackUrl();
     const res = await fetch(`${BACKEND_URL}/api/auth/magic-link`, {
       method: "POST",
-      headers: { "content-type": "application/json", accept: "application/json" },
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+        ...backendProtectionHeaders()
+      },
       body: JSON.stringify({
         email: input.email,
         callback_url: callbackUrl,
@@ -21044,7 +21261,11 @@ async function runAuthLoginPoll(input) {
   try {
     const res = await fetch(`${BACKEND_URL}/api/auth/poll`, {
       method: "POST",
-      headers: { "content-type": "application/json", accept: "application/json" },
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+        ...backendProtectionHeaders()
+      },
       body: JSON.stringify({ email: input.email, state: input.state })
     });
     if (res.status === 202) {
@@ -21079,164 +21300,18 @@ async function runAuthLoginPoll(input) {
   }
 }
 
-// src/lib/hub.ts
-import { access, readFile as readFile2, writeFile as writeFile2 } from "fs/promises";
-import { dirname as dirname2, isAbsolute, join as join2, parse as parsePath, resolve } from "path";
-var HUB_FILE = ".conversion-hub.json";
-var ProjectNotMaterializedError = class extends Error {
-  ws_slug;
-  proj_slug;
-  constructor(ws_slug, proj_slug) {
-    super(
-      `Project '${ws_slug}/${proj_slug}' n\xE3o est\xE1 materializado neste hub. Use a ferramenta \`materialize_project\` primeiro.`
-    );
-    this.name = "ProjectNotMaterializedError";
-    this.ws_slug = ws_slug;
-    this.proj_slug = proj_slug;
-  }
-};
-async function fileExists(path) {
-  try {
-    await access(path);
-    return true;
-  } catch {
-    return false;
-  }
-}
-async function findHubRoot(cwd) {
-  let current = resolve(cwd);
-  const fsRoot = parsePath(current).root;
-  for (let i = 0; i < 64; i += 1) {
-    if (await fileExists(join2(current, HUB_FILE))) return current;
-    const parent = dirname2(current);
-    if (parent === current || current === fsRoot) return null;
-    current = parent;
-  }
-  return null;
-}
-function isHubShape(v) {
-  if (!v || typeof v !== "object") return false;
-  const o = v;
-  if (o["version"] !== 1) return false;
-  if (typeof o["created_at"] !== "string") return false;
-  if (typeof o["updated_at"] !== "string") return false;
-  if (!Array.isArray(o["projects"])) return false;
-  for (const p of o["projects"]) {
-    if (!p || typeof p !== "object") return false;
-    const entry = p;
-    if (typeof entry["ws_slug"] !== "string") return false;
-    if (typeof entry["proj_slug"] !== "string") return false;
-    if (typeof entry["ws_id"] !== "string") return false;
-    if (typeof entry["proj_id"] !== "string") return false;
-    if (typeof entry["path"] !== "string") return false;
-  }
-  if ("active" in o) {
-    const a = o["active"];
-    if (a !== null && a !== void 0) {
-      if (typeof a !== "object") return false;
-      const active = a;
-      if (typeof active["ws_slug"] !== "string") return false;
-      if (typeof active["proj_slug"] !== "string") return false;
-    }
-  }
-  return true;
-}
-function normalizeHubConfig(raw) {
-  const rawActive = raw.active;
-  const active = rawActive && typeof rawActive === "object" ? { ws_slug: rawActive.ws_slug, proj_slug: rawActive.proj_slug } : null;
-  return {
-    version: raw.version,
-    created_at: raw.created_at,
-    updated_at: raw.updated_at,
-    projects: raw.projects,
-    active
-  };
-}
-async function readHub(hubRoot) {
-  const path = join2(hubRoot, HUB_FILE);
-  let raw;
-  try {
-    raw = await readFile2(path, "utf8");
-  } catch {
-    return null;
-  }
-  try {
-    const parsed = JSON.parse(raw);
-    return isHubShape(parsed) ? normalizeHubConfig(parsed) : null;
-  } catch {
-    return null;
-  }
-}
-async function resolveProjectFromHub(hubRoot, ws_slug, proj_slug) {
-  const config2 = await readHub(hubRoot);
-  if (!config2) return null;
-  const entry = config2.projects.find(
-    (p) => p.ws_slug === ws_slug && p.proj_slug === proj_slug
-  );
-  if (!entry) return null;
-  return {
-    ws_id: entry.ws_id,
-    proj_id: entry.proj_id,
-    path: entry.path,
-    absolute_path: join2(hubRoot, entry.path)
-  };
-}
-async function getActiveProject(hubRoot) {
-  const config2 = await readHub(hubRoot);
-  if (!config2) return null;
-  if (!config2.active) return null;
-  const { ws_slug, proj_slug } = config2.active;
-  const entry = config2.projects.find(
-    (p) => p.ws_slug === ws_slug && p.proj_slug === proj_slug
-  );
-  if (!entry) return null;
-  return {
-    ws_slug: entry.ws_slug,
-    proj_slug: entry.proj_slug,
-    ws_id: entry.ws_id,
-    proj_id: entry.proj_id,
-    path: entry.path,
-    absolute_path: join2(hubRoot, entry.path)
-  };
-}
-async function setActiveProject(hubRoot, ws_slug, proj_slug) {
-  if (!isAbsolute(hubRoot)) {
-    throw new Error(`setActiveProject requer caminho absoluto, recebi: ${hubRoot}`);
-  }
-  const current = await readHub(hubRoot);
-  if (!current) {
-    throw new Error(
-      `Hub config inv\xE1lido em ${hubRoot}. Use a ferramenta \`materialize_project\` primeiro.`
-    );
-  }
-  const exists = current.projects.some(
-    (p) => p.ws_slug === ws_slug && p.proj_slug === proj_slug
-  );
-  if (!exists) {
-    throw new ProjectNotMaterializedError(ws_slug, proj_slug);
-  }
-  const next = {
-    ...current,
-    updated_at: (/* @__PURE__ */ new Date()).toISOString(),
-    active: { ws_slug, proj_slug }
-  };
-  const path = join2(hubRoot, HUB_FILE);
-  await writeFile2(path, JSON.stringify(next, null, 2) + "\n", "utf8");
-  return next;
-}
-
 // src/tools/get-active-project.ts
 var GET_ACTIVE_PROJECT_INPUT_SCHEMA = {
   type: "object",
   properties: {},
   additionalProperties: false
 };
-async function runGetActiveProject(_input, cwd = process.cwd()) {
-  const hubRoot = await findHubRoot(cwd);
+async function runGetActiveProject(_input, cwd = process.cwd(), hubFile = HUB_FILE) {
+  const hubRoot = await findHubRoot(cwd, hubFile);
   if (!hubRoot) {
     return { ok: true, active: null, hub_root: null };
   }
-  const active = await getActiveProject(hubRoot);
+  const active = await getActiveProject(hubRoot, hubFile);
   if (!active) {
     return { ok: true, active: null, hub_root: hubRoot };
   }
@@ -21329,9 +21404,12 @@ async function persistRenewedToken(email3, renewed) {
   }
 }
 async function authenticatedFetch(path, opts = { method: "GET" }) {
+  return authenticatedFetchAt(BACKEND_URL, path, opts);
+}
+async function authenticatedFetchAt(backendUrl, path, opts = { method: "GET" }) {
   const cred = await getToken();
   if (!cred) throw new NotAuthenticatedError();
-  const url2 = `${BACKEND_URL}${path}`;
+  const url2 = `${backendUrl}${path}`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   let res;
@@ -21341,6 +21419,7 @@ async function authenticatedFetch(path, opts = { method: "GET" }) {
       headers: {
         authorization: `Bearer ${cred.token}`,
         accept: "application/json",
+        ...backendProtectionHeaders(),
         ...opts.body !== void 0 ? { "content-type": "application/json" } : {}
       },
       body: opts.body,
@@ -21388,9 +21467,18 @@ async function authenticatedJson(path, opts) {
     throw new BackendError(res.status, `Invalid JSON from ${path}`);
   }
 }
+async function authenticatedJsonAt(backendUrl, path, opts) {
+  const res = await authenticatedFetchAt(backendUrl, path, opts);
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new BackendError(res.status, `Invalid JSON from ${path}`);
+  }
+}
 
 // src/lib/project-scope.ts
-async function resolveProjectScope(input, cwd = process.cwd()) {
+async function resolveProjectScope(input, cwd = process.cwd(), hubFile = HUB_FILE, materializeTool = "materialize_project") {
   if (!input || typeof input !== "object") {
     return {
       ok: false,
@@ -21414,20 +21502,20 @@ async function resolveProjectScope(input, cwd = process.cwd()) {
       hint: "Campo 'proj_slug' (string) \xE9 obrigat\xF3rio."
     };
   }
-  const hubRoot = await findHubRoot(cwd);
+  const hubRoot = await findHubRoot(cwd, hubFile);
   if (!hubRoot) {
     return {
       ok: false,
       error: "not_in_hub",
-      hint: "N\xE3o encontrei .conversion-hub.json. Certifique-se de abrir o Claude Code dentro de um hub (pasta materializada com a ferramenta `materialize_project`)."
+      hint: `N\xE3o encontrei ${hubFile}. Certifique-se de abrir o Claude Code dentro de um hub (pasta materializada com a ferramenta \`${materializeTool}\`).`
     };
   }
-  const resolved = await resolveProjectFromHub(hubRoot, ws, proj);
+  const resolved = await resolveProjectFromHub(hubRoot, ws, proj, hubFile);
   if (!resolved) {
     return {
       ok: false,
       error: "project_not_in_hub",
-      hint: `Project '${ws}/${proj}' n\xE3o est\xE1 neste hub. Use a ferramenta \`materialize_project\` primeiro.`
+      hint: `Project '${ws}/${proj}' n\xE3o est\xE1 neste hub. Use a ferramenta \`${materializeTool}\` primeiro.`
     };
   }
   return {
@@ -21468,7 +21556,7 @@ var GET_BACKLINKS_INPUT_SCHEMA = {
   required: ["ws_slug", "proj_slug", "slug"],
   additionalProperties: false
 };
-async function runGetBacklinks(input, cwd = process.cwd()) {
+async function runGetBacklinks(input, cwd = process.cwd(), target2 = {}) {
   if (!input || typeof input.slug !== "string") {
     return {
       ok: false,
@@ -21484,13 +21572,13 @@ async function runGetBacklinks(input, cwd = process.cwd()) {
       hint: `Invalid slug '${input.slug}'. Lowercase, alphanumerics and hyphens only.`
     };
   }
-  const scope = await resolveProjectScope(input, cwd);
+  const scope = await resolveProjectScope(input, cwd, target2.hubFile, target2.materializeTool);
   if (!scope.ok) return scope;
   try {
-    const body = await authenticatedJson(
-      `/api/v1/ws/${scope.ws_id}/projects/${scope.proj_id}/content/${encodeURIComponent(slug)}/backlinks`,
-      { method: "GET" }
-    );
+    const path = `/api/v1/ws/${scope.ws_id}/projects/${scope.proj_id}/content/${encodeURIComponent(slug)}/backlinks`;
+    const body = target2.backendUrl ? await authenticatedJsonAt(target2.backendUrl, path, {
+      method: "GET"
+    }) : await authenticatedJson(path, { method: "GET" });
     return { ok: true, backlinks: body.backlinks };
   } catch (err) {
     return mapError(err);
@@ -21547,7 +21635,7 @@ var GET_CONTENT_INPUT_SCHEMA = {
   required: ["ws_slug", "proj_slug", "slug"],
   additionalProperties: false
 };
-async function runGetContent(input, cwd = process.cwd()) {
+async function runGetContent(input, cwd = process.cwd(), target2 = {}) {
   if (!input || typeof input.slug !== "string") {
     return {
       ok: false,
@@ -21563,13 +21651,13 @@ async function runGetContent(input, cwd = process.cwd()) {
       hint: `Invalid slug '${input.slug}'. Lowercase, alphanumerics and hyphens only.`
     };
   }
-  const scope = await resolveProjectScope(input, cwd);
+  const scope = await resolveProjectScope(input, cwd, target2.hubFile, target2.materializeTool);
   if (!scope.ok) return scope;
   try {
-    const body = await authenticatedJson(
-      `/api/v1/ws/${scope.ws_id}/projects/${scope.proj_id}/content/${encodeURIComponent(slug)}`,
-      { method: "GET" }
-    );
+    const path = `/api/v1/ws/${scope.ws_id}/projects/${scope.proj_id}/content/${encodeURIComponent(slug)}`;
+    const body = target2.backendUrl ? await authenticatedJsonAt(target2.backendUrl, path, {
+      method: "GET"
+    }) : await authenticatedJson(path, { method: "GET" });
     return { ok: true, item: body.item };
   } catch (err) {
     return mapError2(err);
@@ -21758,12 +21846,12 @@ function mapError3(err, skill) {
 }
 
 // src/lib/project-save.ts
-import { mkdir as mkdir3, readFile as readFile4, writeFile as writeFile4 } from "fs/promises";
+import { mkdir as mkdir4, readFile as readFile4, writeFile as writeFile4 } from "fs/promises";
 import { dirname as dirname4, join as join4 } from "path";
 
 // ../../local-sync/dist/index.js
-import { createHash, randomUUID } from "crypto";
-import { chmod as chmod2, mkdir as mkdir2, readFile as readFile3, readdir, rename as rename2, rm, stat, writeFile as writeFile3 } from "fs/promises";
+import { createHash, randomUUID as randomUUID2 } from "crypto";
+import { chmod as chmod2, mkdir as mkdir3, readFile as readFile3, readdir, rename as rename3, rm, stat, writeFile as writeFile3 } from "fs/promises";
 import { dirname as dirname3, join as join3, relative, sep } from "path";
 var PATH_MAX_LENGTH = 512;
 var PATH_MAX_DEPTH = 16;
@@ -21793,13 +21881,9 @@ var WINDOWS_RESERVED_NAMES = /* @__PURE__ */ new Set([
   "lpt9"
 ]);
 var MANIFEST_RELATIVE_PATH = ".conversion/manifest.json";
-var HUB_FILE2 = ".conversion-hub.json";
 var STATUS_RELATIVE_PATH = ".conversion/sync/status.json";
 function manifestPath(projectRoot) {
   return join3(projectRoot, MANIFEST_RELATIVE_PATH);
-}
-function hubPath(hubRoot) {
-  return join3(hubRoot, HUB_FILE2);
 }
 function statusPath(projectRoot) {
   return join3(projectRoot, STATUS_RELATIVE_PATH);
@@ -21812,41 +21896,18 @@ async function readJsonFile(filePath) {
   }
 }
 async function atomicWriteJson(filePath, value, mode = 384) {
-  await mkdir2(dirname3(filePath), { recursive: true });
-  const tmp = join3(dirname3(filePath), `.${process.pid}.${randomUUID()}.tmp`);
+  await mkdir3(dirname3(filePath), { recursive: true });
+  const tmp = join3(dirname3(filePath), `.${process.pid}.${randomUUID2()}.tmp`);
   await writeFile3(tmp, `${JSON.stringify(value, null, 2)}
 `, {
     encoding: "utf8",
     mode
   });
   await chmod2(tmp, mode).catch(() => void 0);
-  await rename2(tmp, filePath);
+  await rename3(tmp, filePath);
 }
 async function writeManifest(projectRoot, manifest) {
   await atomicWriteJson(manifestPath(projectRoot), manifest);
-}
-async function readHub2(hubRoot) {
-  const value = await readJsonFile(hubPath(hubRoot));
-  return isHub(value) ? value : null;
-}
-async function writeHub(hubRoot, hub) {
-  await atomicWriteJson(hubPath(hubRoot), hub);
-}
-async function upsertHubProject(hubRoot, entry) {
-  const now = (/* @__PURE__ */ new Date()).toISOString();
-  const current = await readHub2(hubRoot) ?? {
-    version: 1,
-    created_at: now,
-    updated_at: now,
-    projects: [],
-    active: null
-  };
-  const projects = current.projects.filter((p) => !(p.ws_slug === entry.ws_slug && p.proj_slug === entry.proj_slug));
-  projects.push(entry);
-  projects.sort((a, b) => `${a.ws_slug}/${a.proj_slug}`.localeCompare(`${b.ws_slug}/${b.proj_slug}`));
-  const next = { ...current, updated_at: now, projects };
-  await writeHub(hubRoot, next);
-  return next;
 }
 async function readSyncStatus(projectRoot) {
   return readJsonFile(statusPath(projectRoot));
@@ -21932,11 +21993,6 @@ function deterministicCommitId(input) {
   chars[16] = (variant & 3 | 8).toString(16);
   const id = chars.join("");
   return `${id.slice(0, 8)}-${id.slice(8, 12)}-${id.slice(12, 16)}-${id.slice(16, 20)}-${id.slice(20, 32)}`;
-}
-function isHub(value) {
-  if (!value || typeof value !== "object")
-    return false;
-  return value.version === 1 && typeof value.created_at === "string" && typeof value.updated_at === "string" && Array.isArray(value.projects);
 }
 
 // src/lib/project-save-helpers.ts
@@ -22068,13 +22124,14 @@ async function readManifest(projectRoot) {
 }
 async function writeManifest2(projectRoot, m) {
   const path = join4(projectRoot, MANIFEST_FILE);
-  await mkdir3(dirname4(path), { recursive: true });
+  await mkdir4(dirname4(path), { recursive: true });
   await writeFile4(path, JSON.stringify(m, null, 2) + "\n", "utf8");
 }
 async function authedFetch(cred, url2, init) {
   const headers = {
     authorization: `Bearer ${cred.token}`,
     accept: "application/json",
+    ...backendProtectionHeaders(),
     ...init.headers
   };
   const res = await fetch(url2, { ...init, headers });
@@ -22113,6 +22170,7 @@ async function runProjectSave(input, context) {
     };
   }
   const { wsId, projId, absoluteProjectRoot } = context;
+  const backendUrl = context.backendUrl ?? BACKEND_URL;
   const manifest = await readManifest(absoluteProjectRoot);
   if (!manifest) {
     return {
@@ -22126,7 +22184,7 @@ async function runProjectSave(input, context) {
   const canonical = isTextMime(mime) ? Buffer.from(canonicalizeText(rawBytes, mime)) : rawBytes;
   const sha = sha256Hex(canonical);
   try {
-    const blobUrl = `${BACKEND_URL}/api/v1/ws/${wsId}/blobs`;
+    const blobUrl = `${backendUrl}/api/v1/ws/${wsId}/blobs`;
     const blobRes = await authedFetch(cred, blobUrl, {
       method: "POST",
       headers: {
@@ -22185,7 +22243,7 @@ async function runProjectSave(input, context) {
   try {
     commitResponse = await authedFetch(
       cred,
-      `${BACKEND_URL}/api/v1/ws/${wsId}/projects/${projId}/commits`,
+      `${backendUrl}/api/v1/ws/${wsId}/projects/${projId}/commits`,
       {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -22244,7 +22302,7 @@ async function runProjectSave(input, context) {
   }
   try {
     const abs = join4(absoluteProjectRoot, input.path);
-    await mkdir3(dirname4(abs), { recursive: true });
+    await mkdir4(dirname4(abs), { recursive: true });
     await writeFile4(abs, canonical);
   } catch (err) {
     process.stderr.write(
@@ -22274,7 +22332,7 @@ async function runProjectSave(input, context) {
 `
     );
   }
-  const url2 = `${BACKEND_URL}/p/${wsId}/${projId}/edit/${input.path}`;
+  const url2 = `${backendUrl}/p/${wsId}/${projId}/edit/${input.path}`;
   return {
     ok: true,
     url: url2,
@@ -22318,7 +22376,7 @@ async function runProjectSaveAndUrl(input, cwd = process.cwd()) {
 }
 
 // src/tools/project-save-batch.ts
-import { mkdir as mkdir4, readFile as readFile5, writeFile as writeFile5 } from "fs/promises";
+import { mkdir as mkdir5, readFile as readFile5, writeFile as writeFile5 } from "fs/promises";
 import { dirname as dirname5, join as join5 } from "path";
 var MANIFEST_FILE2 = ".conversion/manifest.json";
 var PROJECT_SAVE_BATCH_INPUT_SCHEMA = {
@@ -22358,6 +22416,7 @@ async function authedFetch2(cred, url2, init) {
   const headers = {
     authorization: `Bearer ${cred.token}`,
     accept: "application/json",
+    ...backendProtectionHeaders(),
     ...init.headers
   };
   const res = await fetch(url2, { ...init, headers });
@@ -22391,7 +22450,8 @@ async function readLocalManifest(projectRoot) {
     return null;
   }
 }
-async function runProjectSaveBatch(input, cwd = process.cwd()) {
+async function runProjectSaveBatch(input, cwd = process.cwd(), target2 = {}) {
+  const backendUrl = target2.backendUrl ?? BACKEND_URL;
   if (!input || !Array.isArray(input.files) || input.files.length === 0) {
     return {
       ok: false,
@@ -22437,7 +22497,12 @@ async function runProjectSaveBatch(input, cwd = process.cwd()) {
       hint: "Use the `auth_login_start` MCP tool (then `auth_login_poll`) first."
     };
   }
-  const scope = await resolveProjectScope(input, cwd);
+  const scope = await resolveProjectScope(
+    input,
+    cwd,
+    target2.hubFile,
+    target2.materializeTool
+  );
   if (!scope.ok) return scope;
   const projectRoot = scope.project_root;
   const manifest = await readLocalManifest(projectRoot);
@@ -22492,7 +22557,7 @@ async function runProjectSaveBatch(input, cwd = process.cwd()) {
   try {
     res = await authedFetch2(
       cred,
-      `${BACKEND_URL}/api/v1/ws/${scope.ws_id}/projects/${scope.proj_id}/commits/batch`,
+      `${backendUrl}/api/v1/ws/${scope.ws_id}/projects/${scope.proj_id}/commits/batch`,
       {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -22542,7 +22607,7 @@ async function runProjectSaveBatch(input, cwd = process.cwd()) {
   try {
     for (const p of processed) {
       const abs = join5(projectRoot, p.path);
-      await mkdir4(dirname5(abs), { recursive: true });
+      await mkdir5(dirname5(abs), { recursive: true });
       await writeFile5(abs, p.canonical);
     }
   } catch (err) {
@@ -22568,7 +22633,7 @@ async function runProjectSaveBatch(input, cwd = process.cwd()) {
   };
   try {
     const manifestPath2 = join5(projectRoot, MANIFEST_FILE2);
-    await mkdir4(dirname5(manifestPath2), { recursive: true });
+    await mkdir5(dirname5(manifestPath2), { recursive: true });
     await writeFile5(
       manifestPath2,
       JSON.stringify(nextManifest, null, 2) + "\n",
@@ -22581,7 +22646,7 @@ async function runProjectSaveBatch(input, cwd = process.cwd()) {
     );
   }
   const firstPath = processed[0].path;
-  const url2 = `${BACKEND_URL}/p/${scope.ws_id}/${scope.proj_id}/edit/${firstPath}`;
+  const url2 = `${backendUrl}/p/${scope.ws_id}/${scope.proj_id}/edit/${firstPath}`;
   return {
     ok: true,
     url: url2,
@@ -22808,7 +22873,7 @@ var READ_BRAIN_INPUT_SCHEMA = {
   required: ["ws_slug", "proj_slug"],
   additionalProperties: false
 };
-async function runReadBrain(input, cwd = process.cwd()) {
+async function runReadBrain(input, cwd = process.cwd(), target2 = {}) {
   if (input && typeof input.collection === "string" && !VALID_BRAIN_TYPES.has(input.collection)) {
     return {
       ok: false,
@@ -22816,13 +22881,20 @@ async function runReadBrain(input, cwd = process.cwd()) {
       hint: `Unknown collection '${input.collection}'. Allowed: ${Array.from(VALID_BRAIN_TYPES).join(", ")}.`
     };
   }
-  const scope = await resolveProjectScope(input, cwd);
+  const scope = await resolveProjectScope(
+    input,
+    cwd,
+    target2.hubFile,
+    target2.materializeTool
+  );
   if (!scope.ok) return scope;
   try {
-    const body = await authenticatedJson(
-      `/api/v1/ws/${scope.ws_id}/projects/${scope.proj_id}/brain`,
+    const path = `/api/v1/ws/${scope.ws_id}/projects/${scope.proj_id}/brain`;
+    const body = target2.backendUrl ? await authenticatedJsonAt(
+      target2.backendUrl,
+      path,
       { method: "GET" }
-    );
+    ) : await authenticatedJson(path, { method: "GET" });
     const items = typeof input.collection === "string" ? body.items.filter((i) => i.type === input.collection) : body.items;
     return { ok: true, items };
   } catch (err) {
@@ -22978,7 +23050,7 @@ function buildQuery(input) {
   const s = qs.toString();
   return s ? `?${s}` : "";
 }
-async function runSearchProject(input, cwd = process.cwd()) {
+async function runSearchProject(input, cwd = process.cwd(), target2 = {}) {
   if (input && typeof input !== "object") {
     return { ok: false, error: "bad_input", hint: "Input must be an object." };
   }
@@ -22989,13 +23061,11 @@ async function runSearchProject(input, cwd = process.cwd()) {
       hint: `Unknown type '${input.type}'. Allowed: ${Array.from(VALID_TYPES).join(", ")}.`
     };
   }
-  const scope = await resolveProjectScope(input, cwd);
+  const scope = await resolveProjectScope(input, cwd, target2.hubFile, target2.materializeTool);
   if (!scope.ok) return scope;
   try {
-    const body = await authenticatedJson(
-      `/api/v1/ws/${scope.ws_id}/projects/${scope.proj_id}/content${buildQuery(input)}`,
-      { method: "GET" }
-    );
+    const path = `/api/v1/ws/${scope.ws_id}/projects/${scope.proj_id}/content${buildQuery(input)}`;
+    const body = target2.backendUrl ? await authenticatedJsonAt(target2.backendUrl, path, { method: "GET" }) : await authenticatedJson(path, { method: "GET" });
     return { ok: true, items: body.items, total: body.total };
   } catch (err) {
     return mapError5(err);
@@ -23059,7 +23129,7 @@ var SET_ACTIVE_PROJECT_INPUT_SCHEMA = {
   required: ["ws_slug", "proj_slug"],
   additionalProperties: false
 };
-async function runSetActiveProject(input, cwd = process.cwd()) {
+async function runSetActiveProject(input, cwd = process.cwd(), hubFile = HUB_FILE, materializeTool = "materialize_project") {
   if (!input || typeof input !== "object") {
     return {
       ok: false,
@@ -23083,16 +23153,16 @@ async function runSetActiveProject(input, cwd = process.cwd()) {
       hint: "Campo 'proj_slug' (string) \xE9 obrigat\xF3rio."
     };
   }
-  const hubRoot = await findHubRoot(cwd);
+  const hubRoot = await findHubRoot(cwd, hubFile);
   if (!hubRoot) {
     return {
       ok: false,
       error: "not_in_hub",
-      hint: "N\xE3o encontrei .conversion-hub.json. Certifique-se de abrir o Claude Code dentro de um hub (pasta materializada com a ferramenta `materialize_project`)."
+      hint: `N\xE3o encontrei ${hubFile}. Use a ferramenta \`${materializeTool}\` primeiro.`
     };
   }
   try {
-    await setActiveProject(hubRoot, ws, proj);
+    await setActiveProject(hubRoot, ws, proj, hubFile);
     return {
       ok: true,
       active: { ws_slug: ws, proj_slug: proj },
@@ -23113,10 +23183,26 @@ async function runSetActiveProject(input, cwd = process.cwd()) {
 
 // src/tools/sync.ts
 import { existsSync } from "fs";
-import { mkdir as mkdir5, readFile as readFile6, readdir as readdir2, stat as stat2, writeFile as writeFile6 } from "fs/promises";
+import { mkdir as mkdir6, readFile as readFile6, readdir as readdir2, stat as stat2, writeFile as writeFile6 } from "fs/promises";
 import { homedir as homedir2 } from "os";
 import { dirname as dirname6, isAbsolute as isAbsolute2, join as join6, relative as relative2, resolve as resolve2 } from "path";
 import { fileURLToPath } from "url";
+var LEGACY_TARGET = {
+  backendUrl: BACKEND_URL,
+  hubFile: HUB_FILE,
+  projectPrefix: null,
+  syncDir: "sync",
+  logFile: "sync-monitor.log"
+};
+function searchHubTarget() {
+  return {
+    backendUrl: requireSearchHubBackendUrl(),
+    hubFile: SEARCHHUB_HUB_FILE,
+    projectPrefix: "searchhub",
+    syncDir: "sync",
+    logFile: "searchhub-sync-monitor.log"
+  };
+}
 var SYNC_STATUS_INPUT_SCHEMA = {
   type: "object",
   properties: {
@@ -23174,15 +23260,17 @@ var MATERIALIZE_PROJECT_INPUT_SCHEMA = {
   required: ["ws_slug", "proj_slug"],
   additionalProperties: false
 };
-async function runListWorkspacesProjects() {
+async function runListWorkspacesProjects(target2 = LEGACY_TARGET) {
   try {
-    const wsBody = await authenticatedJson(
+    const wsBody = await authenticatedJsonAt(
+      target2.backendUrl,
       "/api/v1/user/workspaces",
       { method: "GET" }
     );
     const workspaces = [];
     for (const ws of wsBody.workspaces) {
-      const projectsBody = await authenticatedJson(
+      const projectsBody = await authenticatedJsonAt(
+        target2.backendUrl,
         `/api/v1/ws/${ws.id}/projects`,
         { method: "GET" }
       );
@@ -23193,8 +23281,8 @@ async function runListWorkspacesProjects() {
     return mapSyncError(err);
   }
 }
-async function runSyncStatus(input, cwd = process.cwd()) {
-  const resolved = await resolveLocalProject(input, cwd);
+async function runSyncStatus(input, cwd = process.cwd(), target2 = LEGACY_TARGET) {
+  const resolved = await resolveLocalProject(input, cwd, target2);
   if (!resolved.ok) return resolved;
   if (!resolved.project) return { ok: true, project: null, status: null };
   return {
@@ -23203,8 +23291,8 @@ async function runSyncStatus(input, cwd = process.cwd()) {
     status: await readSyncStatus(resolved.project.absolute_path)
   };
 }
-async function runSyncPause(input, cwd = process.cwd()) {
-  const resolved = await resolveLocalProject(input, cwd);
+async function runSyncPause(input, cwd = process.cwd(), target2 = LEGACY_TARGET) {
+  const resolved = await resolveLocalProject(input, cwd, target2);
   if (!resolved.ok) return resolved;
   if (!resolved.project) {
     return { ok: false, error: "not_in_hub", hint: "No active project found." };
@@ -23215,8 +23303,8 @@ async function runSyncPause(input, cwd = process.cwd()) {
   );
   return { ok: true, status };
 }
-async function runSyncResume(input, cwd = process.cwd()) {
-  const resolved = await resolveLocalProject(input, cwd);
+async function runSyncResume(input, cwd = process.cwd(), target2 = LEGACY_TARGET) {
+  const resolved = await resolveLocalProject(input, cwd, target2);
   if (!resolved.ok) return resolved;
   if (!resolved.project) {
     return { ok: false, error: "not_in_hub", hint: "No active project found." };
@@ -23224,21 +23312,21 @@ async function runSyncResume(input, cwd = process.cwd()) {
   const status = await resumeSync(resolved.project.absolute_path);
   return { ok: true, status };
 }
-async function runSyncRepair(input, cwd = process.cwd()) {
+async function runSyncRepair(input, cwd = process.cwd(), target2 = LEGACY_TARGET) {
   if (input.action === "resume") {
-    const resumed = await runSyncResume(input, cwd);
+    const resumed = await runSyncResume(input, cwd, target2);
     if (!resumed.ok) return resumed;
     return { ok: true, action: "resume", status: resumed.status };
   }
-  const status = await runSyncStatus(input, cwd);
+  const status = await runSyncStatus(input, cwd, target2);
   if (!status.ok) return status;
   return { ok: true, action: "status", status: status.status };
 }
-async function runSyncDoctor(input = {}, cwd = process.cwd()) {
+async function runSyncDoctor(input = {}, cwd = process.cwd(), target2 = LEGACY_TARGET) {
   const projectDir = resolve2(process.env["CLAUDE_PROJECT_DIR"] ?? cwd);
-  const hubRoot = await findHubRoot(projectDir);
+  const hubRoot = await findHubRoot(projectDir, target2.hubFile);
   const [plugin, auth] = await Promise.all([inspectPluginVersion(), getToken().catch(() => null)]);
-  const hub = hubRoot ? await readHub(hubRoot) : null;
+  const hub = hubRoot ? await readHub(hubRoot, target2.hubFile) : null;
   const activeProject = hub?.active ? `${hub.active.ws_slug}/${hub.active.proj_slug}` : null;
   const selected = hubRoot && hub ? selectDiagnosticProjects(hubRoot, hub.projects, activeProject, projectDir) : [];
   const projects = await Promise.all(
@@ -23247,7 +23335,7 @@ async function runSyncDoctor(input = {}, cwd = process.cwd()) {
         readSyncStatus(project.absolute_path),
         fileExists2(join6(project.absolute_path, ".conversion", "manifest.json")),
         readJsonFile2(
-          join6(project.absolute_path, ".conversion", "sync", "project.lock", "owner.json")
+          join6(project.absolute_path, ".conversion", target2.syncDir, "project.lock", "owner.json")
         )
       ]);
       return {
@@ -23263,11 +23351,11 @@ async function runSyncDoctor(input = {}, cwd = process.cwd()) {
       };
     })
   );
-  const legacyHubLock = hubRoot && await fileExists2(join6(hubRoot, ".conversion", "sync", "project.lock", "owner.json")) ? await readJsonFile2(
-    join6(hubRoot, ".conversion", "sync", "project.lock", "owner.json")
+  const legacyHubLock = hubRoot && await fileExists2(join6(hubRoot, ".conversion", target2.syncDir, "project.lock", "owner.json")) ? await readJsonFile2(
+    join6(hubRoot, ".conversion", target2.syncDir, "project.lock", "owner.json")
   ) : null;
   const includeRemote = input.include_remote_config !== false;
-  const remoteConfig = includeRemote && auth ? await fetchSyncConfig(auth.token) : null;
+  const remoteConfig = includeRemote && auth ? await fetchSyncConfig(auth.token, target2.backendUrl) : null;
   const warnings = buildDoctorWarnings({
     hubRoot,
     projectCount: hub?.projects.length ?? 0,
@@ -23298,14 +23386,19 @@ async function runSyncDoctor(input = {}, cwd = process.cwd()) {
     projects,
     legacy_hub_lock: legacyHubLock,
     warnings,
-    ...input.include_logs ? { logs: await readLogLines(Math.min(Math.max(input.lines ?? 30, 1), 200)) } : {}
+    ...input.include_logs ? {
+      logs: await readLogLines(
+        Math.min(Math.max(input.lines ?? 30, 1), 200),
+        target2.logFile
+      )
+    } : {}
   };
 }
-async function runMaterializeProject(input, cwd = process.cwd()) {
+async function runMaterializeProject(input, cwd = process.cwd(), target2 = LEGACY_TARGET) {
   if (!input || typeof input.ws_slug !== "string" || typeof input.proj_slug !== "string") {
     return { ok: false, error: "bad_input", hint: "ws_slug and proj_slug are required." };
   }
-  const listing = await runListWorkspacesProjects();
+  const listing = await runListWorkspacesProjects(target2);
   if (!listing.ok) return listing;
   const workspace = listing.workspaces.find((ws) => ws.slug === input.ws_slug);
   const project = workspace?.projects.find((p) => p.slug === input.proj_slug);
@@ -23316,11 +23409,11 @@ async function runMaterializeProject(input, cwd = process.cwd()) {
       hint: `Project ${input.ws_slug}/${input.proj_slug} not found for this user.`
     };
   }
-  const hubRoot = input.hub_root ?? await findHubRoot(cwd) ?? cwd;
-  const projectPath = `${workspace.slug}/${project.slug}`;
+  const hubRoot = input.hub_root ?? await findHubRoot(cwd, target2.hubFile) ?? cwd;
+  const projectPath = [target2.projectPrefix, workspace.slug, project.slug].filter(Boolean).join("/");
   const absoluteProjectRoot = join6(hubRoot, projectPath);
   try {
-    const headBody = await authenticatedJson(`/api/v1/ws/${workspace.id}/projects/${project.id}/head`, {
+    const headBody = await authenticatedJsonAt(target2.backendUrl, `/api/v1/ws/${workspace.id}/projects/${project.id}/head`, {
       method: "GET"
     });
     const tree = headBody.head?.treeJson ?? {};
@@ -23330,21 +23423,23 @@ async function runMaterializeProject(input, cwd = process.cwd()) {
       if (reason) {
         return { ok: false, error: "invalid_path", hint: `${path}: ${reason}` };
       }
-      const blob = await authenticatedFetch(
+      const blob = await authenticatedFetchAt(
+        target2.backendUrl,
         `/api/v1/ws/${workspace.id}/blobs/${sha}?variant=canonical-sync`,
         { method: "GET" }
       );
       const bytes = new Uint8Array(await blob.arrayBuffer());
-      const target = join6(absoluteProjectRoot, path);
-      await mkdir5(dirname6(target), { recursive: true });
-      await writeFile6(target, bytes);
+      const targetPath = join6(absoluteProjectRoot, path);
+      await mkdir6(dirname6(targetPath), { recursive: true });
+      await writeFile6(targetPath, bytes);
       files[path] = {
         sha256: sha,
         size: bytes.length,
         mime: blob.headers.get("content-type") ?? void 0
       };
     }
-    await writeManifest(absoluteProjectRoot, {
+    const manifest = {
+      backendTarget: target2 === LEGACY_TARGET ? "legacy" : "searchhub",
       projectId: project.id,
       workspaceId: workspace.id,
       workspaceSlug: workspace.slug,
@@ -23353,16 +23448,17 @@ async function runMaterializeProject(input, cwd = process.cwd()) {
       commitId: headBody.head?.commitId ?? null,
       updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
       files
-    });
+    };
+    await writeManifest(absoluteProjectRoot, manifest);
     await upsertHubProject(hubRoot, {
       ws_slug: workspace.slug,
       proj_slug: project.slug,
       ws_id: workspace.id,
       proj_id: project.id,
       path: projectPath
-    });
+    }, target2.hubFile);
     if (input.set_active) {
-      await setActiveProject(hubRoot, workspace.slug, project.slug);
+      await setActiveProject(hubRoot, workspace.slug, project.slug, target2.hubFile);
     }
     return {
       ok: true,
@@ -23489,10 +23585,14 @@ function selectDiagnosticProjects(hubRoot, projects, activeProject, projectDir) 
   });
   return selected;
 }
-async function fetchSyncConfig(token) {
+async function fetchSyncConfig(token, backendUrl) {
   try {
-    const res = await fetch(`${BACKEND_URL}/api/v1/sync/config`, {
-      headers: { authorization: `Bearer ${token}`, accept: "application/json" }
+    const res = await fetch(`${backendUrl}/api/v1/sync/config`, {
+      headers: {
+        authorization: `Bearer ${token}`,
+        accept: "application/json",
+        ...backendProtectionHeaders()
+      }
     });
     return {
       ok: res.ok,
@@ -23507,9 +23607,9 @@ async function fetchSyncConfig(token) {
     };
   }
 }
-async function readLogLines(lines) {
+async function readLogLines(lines, logFile) {
   try {
-    const raw = await readFile6(join6(conversionHome(), "logs", "sync-monitor.log"), "utf8");
+    const raw = await readFile6(join6(conversionHome(), "logs", logFile), "utf8");
     return raw.trimEnd().split("\n").slice(-lines);
   } catch {
     return [];
@@ -23534,14 +23634,15 @@ function buildDoctorWarnings(input) {
   }
   return warnings;
 }
-async function resolveLocalProject(input, cwd) {
-  const hubRoot = await findHubRoot(cwd);
+async function resolveLocalProject(input, cwd, target2) {
+  const hubRoot = await findHubRoot(cwd, target2.hubFile);
   if (!hubRoot) return { ok: true, project: null };
   if (input.ws_slug && input.proj_slug) {
     const resolved = await resolveProjectFromHub(
       hubRoot,
       input.ws_slug,
-      input.proj_slug
+      input.proj_slug,
+      target2.hubFile
     );
     if (!resolved) {
       return {
@@ -23562,7 +23663,7 @@ async function resolveLocalProject(input, cwd) {
       }
     };
   }
-  const active = await getActiveProject(hubRoot);
+  const active = await getActiveProject(hubRoot, target2.hubFile);
   if (!active) return { ok: true, project: null };
   return {
     ok: true,
@@ -23595,17 +23696,181 @@ function mapSyncError(err) {
     hint: err instanceof Error ? err.message : String(err)
   };
 }
+function withSearchHubTarget(run) {
+  try {
+    return run(searchHubTarget());
+  } catch (error2) {
+    return Promise.resolve({
+      ok: false,
+      error: "backend_error",
+      hint: error2 instanceof Error ? error2.message : String(error2)
+    });
+  }
+}
+function runSearchHubListWorkspacesProjects() {
+  return withSearchHubTarget((target2) => runListWorkspacesProjects(target2));
+}
+function runSearchHubMaterializeProject(input, cwd = process.cwd()) {
+  return withSearchHubTarget((target2) => runMaterializeProject(input, cwd, target2));
+}
+function runSearchHubSyncStatus(input, cwd = process.cwd()) {
+  return withSearchHubTarget((target2) => runSyncStatus(input, cwd, target2));
+}
+function runSearchHubSyncDoctor(input = {}, cwd = process.cwd()) {
+  return withSearchHubTarget((target2) => runSyncDoctor(input, cwd, target2));
+}
+function runSearchHubSyncPause(input, cwd = process.cwd()) {
+  return withSearchHubTarget((target2) => runSyncPause(input, cwd, target2));
+}
+function runSearchHubSyncResume(input, cwd = process.cwd()) {
+  return withSearchHubTarget((target2) => runSyncResume(input, cwd, target2));
+}
+function runSearchHubSyncRepair(input, cwd = process.cwd()) {
+  return withSearchHubTarget((target2) => runSyncRepair(input, cwd, target2));
+}
+
+// src/tools/searchhub-projects.ts
+function target() {
+  return {
+    backendUrl: requireSearchHubBackendUrl(),
+    hubFile: SEARCHHUB_HUB_FILE,
+    materializeTool: "searchhub_materialize_project"
+  };
+}
+async function runSearchHubProjectSaveAndUrl(input, cwd = process.cwd()) {
+  let backendUrl;
+  try {
+    backendUrl = requireSearchHubBackendUrl();
+  } catch (error2) {
+    return { ok: false, error: "bad_input", hint: String(error2) };
+  }
+  const scope = await resolveProjectScope(
+    input,
+    cwd,
+    SEARCHHUB_HUB_FILE,
+    "searchhub_materialize_project"
+  );
+  if (!scope.ok) return scope;
+  return runProjectSave(
+    { path: input.path, content: input.content, message: input.message },
+    {
+      wsId: scope.ws_id,
+      projId: scope.proj_id,
+      absoluteProjectRoot: scope.project_root,
+      backendUrl
+    }
+  );
+}
+async function runSearchHubProjectSaveBatch(input, cwd = process.cwd()) {
+  try {
+    return await runProjectSaveBatch(input, cwd, target());
+  } catch (error2) {
+    return { ok: false, error: "bad_input", hint: String(error2) };
+  }
+}
+async function runSearchHubEnsureBrainVault(input, cwd = process.cwd()) {
+  if (!input || typeof input.ws_slug !== "string" || typeof input.proj_slug !== "string") {
+    return { ok: false, error: "bad_input", hint: "ws_slug and proj_slug are required." };
+  }
+  let selectedTarget;
+  try {
+    selectedTarget = target();
+  } catch (error2) {
+    return { ok: false, error: "bad_input", hint: String(error2) };
+  }
+  const scope = { ws_slug: input.ws_slug, proj_slug: input.proj_slug };
+  const brain = await runReadBrain(scope, cwd, selectedTarget);
+  if (!brain.ok) return brain;
+  const present = new Set(brain.items.map((item) => item.type));
+  const missing = BRAIN_VAULT_SEEDS.filter((seed) => !present.has(seed.type));
+  const already_present = BRAIN_VAULT_SEEDS.filter((seed) => present.has(seed.type)).map(
+    (seed) => seed.type
+  );
+  if (missing.length === 0) return { ok: true, seeded: [], already_present };
+  const updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+  const saved = await runProjectSaveBatch(
+    {
+      ...scope,
+      files: missing.map((seed) => ({ path: seed.path, content: seed.build(updatedAt) })),
+      message: `chore(brain): semeia ${missing.map((seed) => seed.path).join(", ")}`
+    },
+    cwd,
+    selectedTarget
+  );
+  if (!saved.ok) return { ok: false, error: saved.error, hint: saved.hint };
+  return {
+    ok: true,
+    seeded: missing.map((seed) => seed.type),
+    already_present,
+    commit_id: saved.commit_id,
+    url: saved.url
+  };
+}
+async function runSearchHubGetActiveProject(_input, cwd = process.cwd()) {
+  const hubRoot = await findHubRoot(cwd, SEARCHHUB_HUB_FILE);
+  if (!hubRoot) return { ok: true, active: null, hub_root: null };
+  const active = await getActiveProject(hubRoot, SEARCHHUB_HUB_FILE);
+  if (!active) return { ok: true, active: null, hub_root: hubRoot };
+  return {
+    ok: true,
+    active: {
+      ws_slug: active.ws_slug,
+      proj_slug: active.proj_slug,
+      ws_id: active.ws_id,
+      proj_id: active.proj_id
+    },
+    hub_root: hubRoot
+  };
+}
+async function runSearchHubSetActiveProject(input, cwd = process.cwd()) {
+  if (!input || typeof input.ws_slug !== "string" || typeof input.proj_slug !== "string") {
+    return { ok: false, error: "bad_input", hint: "ws_slug and proj_slug are required." };
+  }
+  const hubRoot = await findHubRoot(cwd, SEARCHHUB_HUB_FILE);
+  if (!hubRoot) {
+    return {
+      ok: false,
+      error: "not_in_hub",
+      hint: `N\xE3o encontrei ${SEARCHHUB_HUB_FILE}. Use searchhub_materialize_project primeiro.`
+    };
+  }
+  try {
+    await setActiveProject(
+      hubRoot,
+      input.ws_slug,
+      input.proj_slug,
+      SEARCHHUB_HUB_FILE
+    );
+    return {
+      ok: true,
+      active: { ws_slug: input.ws_slug, proj_slug: input.proj_slug },
+      hub_root: hubRoot
+    };
+  } catch (error2) {
+    if (error2 instanceof ProjectNotMaterializedError) {
+      return { ok: false, error: "project_not_in_hub", hint: error2.message };
+    }
+    return { ok: false, error: "unknown_error", hint: String(error2) };
+  }
+}
 
 // src/index.ts
 var SERVER_NAME = "conversion-context";
 var SERVER_VERSION = "0.1.0";
+function sharedReadTarget() {
+  return toolsetMode() === "searchhub" ? {
+    backendUrl: SEARCHHUB_BACKEND_URL ?? "http://searchhub-backend-not-configured.invalid",
+    hubFile: SEARCHHUB_HUB_FILE,
+    materializeTool: "searchhub_materialize_project"
+  } : {};
+}
 function buildServer() {
   const server = new Server(
     { name: SERVER_NAME, version: SERVER_VERSION },
     { capabilities: { tools: {} } }
   );
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: [
+  server.setRequestHandler(ListToolsRequestSchema, async () => {
+    const tools = [
       {
         name: "get_skill_context",
         description: "Fetches the Conversion-proprietary context (methodology, prompts, quality gates, guardrails) for a named skill. Call this FIRST when the user invokes a Conversion skill.",
@@ -23721,11 +23986,52 @@ function buildServer() {
         description: "Reports sync repair status or resumes sync after the user resolves conflict snapshots locally.",
         inputSchema: SYNC_REPAIR_INPUT_SCHEMA
       }
-    ]
-  }));
+    ];
+    const searchHubTools = tools.filter(
+      (tool) => [
+        "project_save_and_url",
+        "project_save_batch",
+        "ensure_brain_vault",
+        "list_workspaces_projects",
+        "materialize_project",
+        "get_active_project",
+        "set_active_project",
+        "sync_status",
+        "sync_doctor",
+        "sync_pause",
+        "sync_resume",
+        "sync_repair"
+      ].includes(tool.name)
+    ).map((tool) => ({
+      ...tool,
+      name: `searchhub_${tool.name}`,
+      description: `SearchHub-only: ${tool.description}`
+    }));
+    const mode = toolsetMode();
+    return {
+      tools: [...tools, ...searchHubTools].filter(
+        (tool) => isToolEnabled(tool.name, mode)
+      )
+    };
+  });
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
     const safeArgs = args ?? {};
+    if (!isToolEnabled(name, toolsetMode())) {
+      return {
+        isError: true,
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              ok: false,
+              error: "unknown_tool",
+              hint: `No such tool: ${name}`
+            })
+          }
+        ]
+      };
+    }
     let result;
     switch (name) {
       case "get_skill_context":
@@ -23755,10 +24061,18 @@ function buildServer() {
         );
         break;
       case "search_project":
-        result = await runSearchProject(safeArgs);
+        result = await runSearchProject(
+          safeArgs,
+          process.cwd(),
+          sharedReadTarget()
+        );
         break;
       case "get_backlinks":
-        result = await runGetBacklinks(safeArgs);
+        result = await runGetBacklinks(
+          safeArgs,
+          process.cwd(),
+          sharedReadTarget()
+        );
         break;
       case "ensure_brain_vault":
         result = await runEnsureBrainVault(
@@ -23766,10 +24080,18 @@ function buildServer() {
         );
         break;
       case "read_brain":
-        result = await runReadBrain(safeArgs);
+        result = await runReadBrain(
+          safeArgs,
+          process.cwd(),
+          sharedReadTarget()
+        );
         break;
       case "get_content":
-        result = await runGetContent(safeArgs);
+        result = await runGetContent(
+          safeArgs,
+          process.cwd(),
+          sharedReadTarget()
+        );
         break;
       case "project_save_batch":
         result = await runProjectSaveBatch(
@@ -23814,6 +24136,64 @@ function buildServer() {
         break;
       case "sync_repair":
         result = await runSyncRepair(
+          safeArgs
+        );
+        break;
+      case "searchhub_project_save_and_url":
+        result = await runSearchHubProjectSaveAndUrl(
+          safeArgs
+        );
+        break;
+      case "searchhub_project_save_batch":
+        result = await runSearchHubProjectSaveBatch(
+          safeArgs
+        );
+        break;
+      case "searchhub_ensure_brain_vault":
+        result = await runSearchHubEnsureBrainVault(
+          safeArgs
+        );
+        break;
+      case "searchhub_get_active_project":
+        result = await runSearchHubGetActiveProject(
+          safeArgs
+        );
+        break;
+      case "searchhub_set_active_project":
+        result = await runSearchHubSetActiveProject(
+          safeArgs
+        );
+        break;
+      case "searchhub_list_workspaces_projects":
+        result = await runSearchHubListWorkspacesProjects();
+        break;
+      case "searchhub_materialize_project":
+        result = await runSearchHubMaterializeProject(
+          safeArgs
+        );
+        break;
+      case "searchhub_sync_status":
+        result = await runSearchHubSyncStatus(
+          safeArgs
+        );
+        break;
+      case "searchhub_sync_doctor":
+        result = await runSearchHubSyncDoctor(
+          safeArgs
+        );
+        break;
+      case "searchhub_sync_pause":
+        result = await runSearchHubSyncPause(
+          safeArgs
+        );
+        break;
+      case "searchhub_sync_resume":
+        result = await runSearchHubSyncResume(
+          safeArgs
+        );
+        break;
+      case "searchhub_sync_repair":
+        result = await runSearchHubSyncRepair(
           safeArgs
         );
         break;
