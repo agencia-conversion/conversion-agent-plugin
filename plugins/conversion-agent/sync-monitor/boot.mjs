@@ -9,6 +9,22 @@ const HEARTBEAT_MS = 10_000;
 const STALE_LOCK_MS = 45_000;
 const PROJECT_CONCURRENCY = 2;
 const PLUGIN_NAME = "conversion-agent";
+const SYNC_TARGET = process.env["CONVERSION_SYNC_TARGET"] === "searchhub"
+    ? "searchhub"
+    : "legacy";
+const HUB_FILE = process.env["CONVERSION_SYNC_HUB_FILE"] ??
+    (SYNC_TARGET === "searchhub"
+        ? ".conversion-searchhub-hub.json"
+        : ".conversion-hub.json");
+const LOG_FILE = SYNC_TARGET === "searchhub"
+    ? "searchhub-sync-monitor.log"
+    : "sync-monitor.log";
+const LOG_SURFACE = SYNC_TARGET === "searchhub"
+    ? "plugin-searchhub-sync-monitor"
+    : "plugin-sync-monitor";
+const EVENT_SURFACE = SYNC_TARGET === "searchhub"
+    ? "conversion-searchhub-sync-monitor"
+    : "conversion-sync-monitor";
 const ACTIONABLE_EVENTS = new Set([
     "sync_inactive",
     "sync_ready",
@@ -33,7 +49,7 @@ function conversionHome() {
     return join(homedir(), ".conversion");
 }
 function logFilePath() {
-    return join(conversionHome(), "logs", "sync-monitor.log");
+    return join(conversionHome(), "logs", LOG_FILE);
 }
 async function log(level, message) {
     const file = logFilePath();
@@ -41,7 +57,7 @@ async function log(level, message) {
     const line = JSON.stringify({
         ts: new Date().toISOString(),
         level,
-        surface: "plugin-sync-monitor",
+        surface: LOG_SURFACE,
         version: VERSION,
         message: redact(message),
     });
@@ -59,7 +75,7 @@ function emit(event, payload = {}) {
         return;
     process.stdout.write(`${JSON.stringify({
         event,
-        surface: "conversion-sync-monitor",
+        surface: EVENT_SURFACE,
         version: VERSION,
         ...payload,
     })}\n`);
@@ -151,7 +167,7 @@ async function detectPluginVersions() {
 async function findHubRoot(startDir) {
     let current = resolve(startDir);
     for (;;) {
-        if (await pathExists(join(current, ".conversion-hub.json")))
+        if (await pathExists(join(current, HUB_FILE)))
             return current;
         const parent = dirname(current);
         if (parent === current)
@@ -168,7 +184,7 @@ async function readHubState(hubRoot) {
             syncProjects: [],
         };
     }
-    const raw = await readFile(join(hubRoot, ".conversion-hub.json"), "utf8");
+    const raw = await readFile(join(hubRoot, HUB_FILE), "utf8");
     const parsed = JSON.parse(raw);
     const projects = Array.isArray(parsed.projects)
         ? parsed.projects
@@ -368,6 +384,11 @@ async function mapLimit(items, limit, fn) {
     await Promise.all(workers);
 }
 async function run() {
+    const toolsetMode = process.env["CONVERSION_TOOLSET_MODE"] ?? "parallel";
+    if ((SYNC_TARGET === "legacy" && toolsetMode === "searchhub") ||
+        (SYNC_TARGET === "searchhub" && toolsetMode === "legacy")) {
+        return;
+    }
     const projectDir = resolve(process.env["CLAUDE_PROJECT_DIR"] || process.cwd());
     const pluginVersions = await detectPluginVersions();
     let lastReadyKey = null;
