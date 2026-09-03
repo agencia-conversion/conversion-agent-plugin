@@ -1,10 +1,10 @@
 import { createHash } from "node:crypto";
-import { chmod, mkdir, readFile, readdir, rename, stat, unlink, writeFile, } from "node:fs/promises";
+import { chmod, mkdir, readFile, readdir, rename, stat, unlink, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join, relative, sep } from "node:path";
 const BACKEND_URL = (process.env["CONVERSION_SYNC_TARGET"] === "searchhub"
-    ? process.env["CONVERSION_SEARCHHUB_BACKEND_URL"] ?? ""
-    : process.env["CONVERSION_BACKEND_URL"] ?? "https://agent.conversion.com.br").replace(/\/+$/u, "");
+    ? (process.env["CONVERSION_SEARCHHUB_BACKEND_URL"] ?? "")
+    : (process.env["CONVERSION_BACKEND_URL"] ?? "https://agent.conversion.com.br")).replace(/\/+$/u, "");
 function backendProtectionHeaders() {
     const secret = process.env["VERCEL_AUTOMATION_BYPASS_SECRET"]?.trim();
     return secret ? { "x-vercel-protection-bypass": secret } : {};
@@ -46,10 +46,25 @@ const TEXT_APPLICATION_MIMES = new Set([
     "application/yaml",
     "application/x-yaml",
 ]);
+const MIME_TOKEN = "[!#$%&'*+.^_`|~0-9A-Za-z-]+";
+const MIME_PARAMETER_VALUE = `(?:${MIME_TOKEN}|"(?:[\\x20\\x21\\x23-\\x5B\\x5D-\\x7E]|\\\\[\\x20-\\x7E])*")`;
+const MANIFEST_MIME_PATTERN = new RegExp(`^ *(${MIME_TOKEN})/(${MIME_TOKEN})(?: *; *${MIME_TOKEN} *=${MIME_PARAMETER_VALUE})* *$`, "u");
+function normalizeManifestMime(value) {
+    if (typeof value !== "string" || value.length === 0)
+        return null;
+    for (const character of value) {
+        const code = character.charCodeAt(0);
+        if (code <= 0x1f || code === 0x7f)
+            return null;
+    }
+    const match = MANIFEST_MIME_PATTERN.exec(value);
+    if (!match)
+        return null;
+    return `${match[1].toLowerCase()}/${match[2].toLowerCase()}`;
+}
 const BYTE_ORDER_MARK = /\uFEFF/gu;
 const ZERO_WIDTH_WATERMARK_FRAME = /\u200D[\u200B\u200C]{32}\u200D/gu;
-const CANONICAL_PLUGIN_DATA_DIR = process.env["CONVERSION_PLUGIN_DATA_DIR"] ??
-    join(homedir(), ".conversion", "plugin-data");
+const CANONICAL_PLUGIN_DATA_DIR = process.env["CONVERSION_PLUGIN_DATA_DIR"] ?? join(homedir(), ".conversion", "plugin-data");
 export function pluginDataDir() {
     return process.env["CLAUDE_PLUGIN_DATA"] ?? join(homedir(), ".conversion", "plugin-data");
 }
@@ -422,9 +437,12 @@ async function downloadCanonicalBlob(auth, workspaceId, sha) {
         throw new Error(`blob_hash_mismatch:${sha.slice(0, 12)}:got_${actual.slice(0, 12)}:` +
             `backend_nao_devolveu_bytes_canonicos`);
     }
+    const mime = normalizeManifestMime(response.headers.get("content-type") ?? "application/octet-stream");
+    if (!mime)
+        throw new Error(`invalid_blob_mime:${sha.slice(0, 12)}`);
     return {
         content,
-        mime: response.headers.get("content-type") ?? "application/octet-stream",
+        mime,
     };
 }
 async function authedJson(auth, path, init) {
@@ -479,7 +497,7 @@ async function savePluginAuthAt(path, input) {
 async function readManifest(projectRoot) {
     try {
         const parsed = JSON.parse(await readFile(join(projectRoot, ".conversion", "manifest.json"), "utf8"));
-        return isManifest(parsed) ? parsed : null;
+        return normalizeManifest(parsed);
     }
     catch {
         return null;
@@ -602,9 +620,7 @@ function reconcile(input) {
         if (remoteTouched)
             remoteChanged = true;
         if (localTouched && remoteTouched && localSha !== remoteSha) {
-            const kind = localSha === undefined || remoteSha === undefined
-                ? "delete-vs-edit"
-                : "same-file";
+            const kind = localSha === undefined || remoteSha === undefined ? "delete-vs-edit" : "same-file";
             const key = `${kind}:${path}`;
             if (!conflictKeys.has(key)) {
                 conflicts.push({ path, kind, baseSha, localSha, remoteSha });
@@ -735,9 +751,7 @@ function canonicalizeContent(input, mime) {
     return new TextEncoder().encode(normalized);
 }
 function stripMarkdownWatermark(text) {
-    return text
-        .replace(BYTE_ORDER_MARK, "")
-        .replace(ZERO_WIDTH_WATERMARK_FRAME, "");
+    return text.replace(BYTE_ORDER_MARK, "").replace(ZERO_WIDTH_WATERMARK_FRAME, "");
 }
 function isMarkdownMime(mime) {
     const lower = mime.toLowerCase().split(";")[0]?.trim() ?? "";
@@ -900,11 +914,11 @@ function isAuthFile(value) {
         typeof obj["access_token"] === "string" &&
         (obj["expires_at"] === undefined || typeof obj["expires_at"] === "string"));
 }
-function isManifest(value) {
+function normalizeManifest(value) {
     if (!value || typeof value !== "object")
-        return false;
+        return null;
     const obj = value;
-    return (typeof obj["projectId"] === "string" &&
+    if (!(typeof obj["projectId"] === "string" &&
         typeof obj["workspaceId"] === "string" &&
         typeof obj["workspaceSlug"] === "string" &&
         typeof obj["projectSlug"] === "string" &&
@@ -912,13 +926,22 @@ function isManifest(value) {
         (obj["commitId"] === null || typeof obj["commitId"] === "string") &&
         typeof obj["updatedAt"] === "string" &&
         !!obj["files"] &&
-        typeof obj["files"] === "object");
+        typeof obj["files"] === "object"))
+        return null;
+    const files = {};
+    for (const [path, metadata] of Object.entries(obj["files"])) {
+        if (!metadata || typeof metadata !== "object")
+            return null;
+        const file = metadata;
+        const mime = normalizeManifestMime(file.mime ?? "application/octet-stream");
+        if (!mime)
+            return null;
+        files[path] = { ...file, mime };
+    }
+    return { ...obj, files };
 }
 function isSyncMode(value) {
-    return (value === "observe" ||
-        value === "pull" ||
-        value === "bidirectional" ||
-        value === "disabled");
+    return (value === "observe" || value === "pull" || value === "bidirectional" || value === "disabled");
 }
 function sortedUnion(...sets) {
     return Array.from(new Set(sets.flat())).sort();

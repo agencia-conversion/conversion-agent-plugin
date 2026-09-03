@@ -99145,6 +99145,22 @@ var TEXT_APPLICATION_MIMES = /* @__PURE__ */ new Set([
   "application/yaml",
   "application/x-yaml"
 ]);
+var MIME_TOKEN = "[!#$%&'*+.^_`|~0-9A-Za-z-]+";
+var MIME_PARAMETER_VALUE = `(?:${MIME_TOKEN}|"(?:[\\x20\\x21\\x23-\\x5B\\x5D-\\x7E]|\\\\[\\x20-\\x7E])*")`;
+var MANIFEST_MIME_PATTERN = new RegExp(
+  `^ *(${MIME_TOKEN})/(${MIME_TOKEN})(?: *; *${MIME_TOKEN} *=${MIME_PARAMETER_VALUE})* *$`,
+  "u"
+);
+function normalizeManifestMime(value) {
+  if (typeof value !== "string" || value.length === 0) return null;
+  for (const character of value) {
+    const code = character.charCodeAt(0);
+    if (code <= 31 || code === 127) return null;
+  }
+  const match = MANIFEST_MIME_PATTERN.exec(value);
+  if (!match) return null;
+  return `${match[1].toLowerCase()}/${match[2].toLowerCase()}`;
+}
 function isTextMime(mime) {
   if (typeof mime !== "string" || mime.length === 0) return false;
   const first = mime.toLowerCase().split(";")[0];
@@ -99280,22 +99296,26 @@ function isPlainRecord(value) {
   const prototype = Object.getPrototypeOf(value);
   return prototype === Object.prototype || prototype === null;
 }
-function isValidManifestFiles(value) {
-  if (!isPlainRecord(value)) return false;
+function normalizeManifestFiles(value) {
+  if (!isPlainRecord(value)) return null;
   const paths = Object.keys(value);
-  if (findProjectPathCaseCollision(paths)) return false;
+  if (findProjectPathCaseCollision(paths)) return null;
+  const normalized = {};
   for (const [path, rawMetadata] of Object.entries(value)) {
     try {
       assertValidProjectPath(path);
     } catch {
-      return false;
+      return null;
     }
-    if (!isPlainRecord(rawMetadata)) return false;
-    if (typeof rawMetadata.sha256 !== "string" || !SHA256_PATTERN.test(rawMetadata.sha256) || typeof rawMetadata.size !== "number" || !Number.isInteger(rawMetadata.size) || rawMetadata.size < 0 || typeof rawMetadata.mime !== "string" || !MIME_PATTERN.test(rawMetadata.mime)) {
-      return false;
+    if (!isPlainRecord(rawMetadata)) return null;
+    if (typeof rawMetadata.sha256 !== "string" || !SHA256_PATTERN.test(rawMetadata.sha256) || typeof rawMetadata.size !== "number" || !Number.isInteger(rawMetadata.size) || rawMetadata.size < 0 || typeof rawMetadata.mime !== "string") {
+      return null;
     }
+    const mime = normalizeManifestMime(rawMetadata.mime);
+    if (!mime) return null;
+    normalized[path] = { sha256: rawMetadata.sha256, size: rawMetadata.size, mime };
   }
-  return true;
+  return normalized;
 }
 async function readProjectManifestSnapshot(projectRoot) {
   let raw;
@@ -99317,8 +99337,9 @@ async function readProjectManifestSnapshot(projectRoot) {
       return null;
     }
     if (typeof manifest.updatedAt !== "string") return null;
-    if (!isValidManifestFiles(manifest.files)) return null;
-    return { manifest: parsed, rawSha256: sha256Hex(raw) };
+    const files = normalizeManifestFiles(manifest.files);
+    if (!files) return null;
+    return { manifest: { ...manifest, files }, rawSha256: sha256Hex(raw) };
   } catch {
     return null;
   }
@@ -125114,10 +125135,7 @@ async function runSyncPause(input, cwd = process.cwd(), target2 = LEGACY_TARGET)
   if (!resolved.project) {
     return { ok: false, error: "not_in_hub", hint: "No active project found." };
   }
-  const status = await pauseSync(
-    resolved.project.absolute_path,
-    input.reason ?? "paused_by_user"
-  );
+  const status = await pauseSync(resolved.project.absolute_path, input.reason ?? "paused_by_user");
   return { ok: true, status };
 }
 async function runSyncResume(input, cwd = process.cwd(), target2 = LEGACY_TARGET) {
@@ -125204,10 +125222,7 @@ async function runSyncDoctor(input = {}, cwd = process.cwd(), target2 = LEGACY_T
     legacy_hub_lock: legacyHubLock,
     warnings,
     ...input.include_logs ? {
-      logs: await readLogLines(
-        Math.min(Math.max(input.lines ?? 30, 1), 200),
-        target2.logFile
-      )
+      logs: await readLogLines(Math.min(Math.max(input.lines ?? 30, 1), 200), target2.logFile)
     } : {}
   };
 }
@@ -125249,10 +125264,16 @@ async function runMaterializeProject(input, cwd = process.cwd(), target2 = LEGAC
       const targetPath = join6(absoluteProjectRoot, path);
       await mkdir6(dirname6(targetPath), { recursive: true });
       await writeFile6(targetPath, bytes);
+      const mime = normalizeManifestMime(
+        blob.headers.get("content-type") ?? "application/octet-stream"
+      );
+      if (!mime) {
+        return { ok: false, error: "backend_error", hint: `${path}: invalid Content-Type` };
+      }
       files[path] = {
         sha256: sha,
         size: bytes.length,
-        mime: blob.headers.get("content-type") ?? void 0
+        mime
       };
     }
     const manifest = {
@@ -125267,13 +125288,17 @@ async function runMaterializeProject(input, cwd = process.cwd(), target2 = LEGAC
       files
     };
     await writeManifest(absoluteProjectRoot, manifest);
-    await upsertHubProject(hubRoot, {
-      ws_slug: workspace.slug,
-      proj_slug: project.slug,
-      ws_id: workspace.id,
-      proj_id: project.id,
-      path: projectPath
-    }, target2.hubFile);
+    await upsertHubProject(
+      hubRoot,
+      {
+        ws_slug: workspace.slug,
+        proj_slug: project.slug,
+        ws_id: workspace.id,
+        proj_id: project.id,
+        path: projectPath
+      },
+      target2.hubFile
+    );
     if (input.set_active) {
       await setActiveProject(hubRoot, workspace.slug, project.slug, target2.hubFile);
     }
@@ -125292,14 +125317,9 @@ function runtimePluginRoot() {
   const explicit = process.env["CLAUDE_PLUGIN_ROOT"];
   if (explicit) return resolve3(explicit);
   const here = dirname6(fileURLToPath(import.meta.url));
-  const candidates = [
-    join6(here, "..", ".."),
-    join6(here, "..", "..", "..")
-  ];
+  const candidates = [join6(here, "..", ".."), join6(here, "..", "..", "..")];
   return resolve3(
-    candidates.find(
-      (candidate) => existsSync(join6(candidate, ".claude-plugin", "plugin.json"))
-    ) ?? candidates[0]
+    candidates.find((candidate) => existsSync(join6(candidate, ".claude-plugin", "plugin.json"))) ?? candidates[0]
   );
 }
 function conversionHome() {
