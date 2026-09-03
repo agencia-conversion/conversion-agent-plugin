@@ -25,9 +25,9 @@ contém apenas o manifest, os stubs de skill e o MCP server empacotado.
 - **Claude Code CLI** instalado (https://claude.com/code).
 
 > Você **não** precisa de nenhum CLI da Conversion. O antigo
-> `@agenciaconversion/cli` foi **descontinuado** — `npm install -g
-> @agenciaconversion/cli` retorna `404`. Tudo roda pelo plugin do Claude Code,
-> e o login acontece sozinho na primeira skill.
+> `@agenciaconversion/cli` foi **descontinuado** —
+> `npm install -g @agenciaconversion/cli` retorna `404`. Tudo roda pelo plugin
+> do Claude Code, e o login acontece sozinho na primeira skill.
 
 ## Instalação no Mac
 
@@ -149,33 +149,48 @@ aberto.
 
 ## Skills disponíveis
 
-Invocadas com `/conversion-agent:<nome>` dentro do Claude Code:
+O plugin publica 26 skills, invocadas com `/conversion-agent:<nome>` dentro do Claude Code:
 
-| Skill | Função |
-|---|---|
-| `conversion-start` | Ponto de entrada; descreva a pauta e o orquestrador conduz |
-| `whereami` | Mostra contexto da sessão (workspace, project, brain) |
-| `briefing` | Gera briefing SEO a partir de tópico + keyword |
-| `redator` | Transforma briefing em artigo aplicando 9 quality gates |
-| `revisor` | QA do artigo contra checklist proprietário |
-| `editor-coesao` | Refina coesão textual em PT-BR |
-| `cluster` | Cria cluster (pillar + satellites) |
-| `brain` / `brain-update` | Memória do project (tom, glossário, decisões) |
-| `projeto` / `abrir` | Navegação e materialização de projects |
-| `workspace` | Navegação entre workspaces |
-| `historico` / `buscar` | Pesquisa no project |
-| `convidar` / `novo-projeto` / `novo-workspace` | Admin |
+| Skill                                          | Função                                                                |
+| ---------------------------------------------- | --------------------------------------------------------------------- |
+| `conversion-start`                             | Ponto de entrada; descreva a pauta e o orquestrador conduz            |
+| `whereami`                                     | Mostra contexto da sessão (workspace, project, brain)                 |
+| `briefing`                                     | Gera briefing SEO a partir de tópico + keyword                        |
+| `redator`                                      | Transforma briefing em artigo aplicando 9 quality gates               |
+| `revisor`                                      | QA do artigo contra checklist proprietário                            |
+| `editor-coesao`                                | Refina coesão textual em PT-BR                                        |
+| `cluster`                                      | Cria cluster (pillar + satellites)                                    |
+| `otimizar-pagina`                              | Recomenda melhorias para uma URL de blog e gera pacote DOCX/HTML/XLSX |
+| `brain` / `brain-update`                       | Memória do project (tom, glossário, decisões)                         |
+| `projeto` / `abrir`                            | Navegação e materialização de projects                                |
+| `workspace`                                    | Navegação entre workspaces                                            |
+| `historico` / `buscar`                         | Pesquisa no project                                                   |
+| `convidar` / `novo-projeto` / `novo-workspace` | Admin                                                                 |
 
 `/conversion-agent:skills` lista todas com descrições atualizadas.
+
+### Otimização on-page
+
+`/conversion-agent:otimizar-pagina` recebe uma URL existente e uma keyword
+foco. Um CSV autorizado do Google Search Console é opcional. Nesta versão, o
+escopo é somente blog.
+
+O run fica salvo no project, pode continuar em uma nova sessão e pausa nos 11
+gates para aprovação humana. Depois do QA, entrega
+`05-seo-cliente.docx`, `redline.docx`, `redline.html` e `plano.xlsx`, todos
+disponíveis pelo download autenticado. A skill recomenda alterações e nunca
+publica ou edita a página/CMS.
 
 ## Troubleshooting
 
 ### `npm error 404 … @agenciaconversion/cli`
+
 Esperado — o CLI foi **descontinuado**. Ignore qualquer guia antigo que
 mande `npm install -g @agenciaconversion/cli`. Siga o fluxo plugin-first
 acima.
 
 ### Plugin não aparece após `/plugin install`
+
 Rode `/reload-plugins` ou reinicie o Claude Code. Se persistir, force re-add
 do marketplace:
 
@@ -186,18 +201,22 @@ do marketplace:
 ```
 
 ### `Failed to install: This plugin uses a source type your Claude Code version does not support`
+
 `marketplace.json` em cache antigo. Atualize o Claude Code pra versão
 recente e force o re-add do marketplace (bloco acima).
 
 ### Skill responde `not_authenticated` ou `session_expired`
+
 Não rode nada manual. Reinvoque `/conversion-agent:conversion-start` — o
 orquestrador dispara um novo magic link no seu e-mail. Clique e siga.
 
 ### Magic link não chega
+
 Cheque spam. Confirme que seu e-mail `@conversion.com.br` foi ativado pelo
 admin. Se não chegar em ~30s, fale com o suporte.
 
 ### `rate_limited`
+
 Você passou de 100 chamadas/hora. Espere o tempo indicado.
 
 ## Suporte

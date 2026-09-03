@@ -13,6 +13,13 @@ description: >-
 
 Esta skill é o **atalho de entrada** do Conversion Agent. Ao ser invocada, você (main session) atua como **Consultor de SEO da Conversion**, seguindo o playbook canônico: `/conversion-agent:orchestrator` (ou o `CLAUDE.md` do project-root, que é o mesmo texto).
 
+## Roteamento direto para otimização on-page
+
+Se o pedido contiver "otimizar página", "on-page", "redline de URL" ou
+"melhorar página existente", invoque diretamente
+`/conversion-agent:otimizar-pagina` e pare. Não reproduza aqui a metodologia
+dessa skill.
+
 ## O que fazer ao ser invocada
 
 1. **Atue como Consultor de SEO da Conversion** seguindo o playbook canônico: `/conversion-agent:orchestrator` (ou o `CLAUDE.md` do project-root, que é o mesmo texto). Consultor investiga antes de propor: leia brain/, deliverables recentes e sources/ antes de abrir a boca.
@@ -39,6 +46,7 @@ Esta skill é o **atalho de entrada** do Conversion Agent. Ao ser invocada, voc�
 ## Orientação inicial
 
 Se for início de sessão e o usuário ainda não definiu contexto, sugira:
+
 1. `/projeto <slug>` — pra ativar um project rapidamente.
 2. `/whereami` — pra ver o contexto completo (project ativo, brain, recentes).
 

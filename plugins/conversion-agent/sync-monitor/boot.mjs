@@ -1,30 +1,21 @@
-import { appendFile, mkdir, readFile, readdir, rm, stat, writeFile, } from "node:fs/promises";
+import { appendFile, mkdir, readFile, readdir, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readPluginAuth, reconcileSyncProject, } from "./engine.mjs";
+import { acquireMonitorLock } from "./lock.mjs";
 const VERSION = "0.1.0";
 const DEFAULT_INTERVAL_MS = 30_000;
 const HEARTBEAT_MS = 10_000;
 const STALE_LOCK_MS = 45_000;
 const PROJECT_CONCURRENCY = 2;
 const PLUGIN_NAME = "conversion-agent";
-const SYNC_TARGET = process.env["CONVERSION_SYNC_TARGET"] === "searchhub"
-    ? "searchhub"
-    : "legacy";
+const SYNC_TARGET = process.env["CONVERSION_SYNC_TARGET"] === "searchhub" ? "searchhub" : "legacy";
 const HUB_FILE = process.env["CONVERSION_SYNC_HUB_FILE"] ??
-    (SYNC_TARGET === "searchhub"
-        ? ".conversion-searchhub-hub.json"
-        : ".conversion-hub.json");
-const LOG_FILE = SYNC_TARGET === "searchhub"
-    ? "searchhub-sync-monitor.log"
-    : "sync-monitor.log";
-const LOG_SURFACE = SYNC_TARGET === "searchhub"
-    ? "plugin-searchhub-sync-monitor"
-    : "plugin-sync-monitor";
-const EVENT_SURFACE = SYNC_TARGET === "searchhub"
-    ? "conversion-searchhub-sync-monitor"
-    : "conversion-sync-monitor";
+    (SYNC_TARGET === "searchhub" ? ".conversion-searchhub-hub.json" : ".conversion-hub.json");
+const LOG_FILE = SYNC_TARGET === "searchhub" ? "searchhub-sync-monitor.log" : "sync-monitor.log";
+const LOG_SURFACE = SYNC_TARGET === "searchhub" ? "plugin-searchhub-sync-monitor" : "plugin-sync-monitor";
+const EVENT_SURFACE = SYNC_TARGET === "searchhub" ? "conversion-searchhub-sync-monitor" : "conversion-sync-monitor";
 const ACTIONABLE_EVENTS = new Set([
     "sync_inactive",
     "sync_ready",
@@ -186,9 +177,7 @@ async function readHubState(hubRoot) {
     }
     const raw = await readFile(join(hubRoot, HUB_FILE), "utf8");
     const parsed = JSON.parse(raw);
-    const projects = Array.isArray(parsed.projects)
-        ? parsed.projects
-        : [];
+    const projects = Array.isArray(parsed.projects) ? parsed.projects : [];
     const active = parseActiveProject(parsed.active);
     return {
         hubRoot,
@@ -242,82 +231,29 @@ function selectSyncProjects(hubRoot, projects, activeProject) {
     });
     return selected;
 }
-function lockDir(projectDir, hubRoot) {
-    void hubRoot;
-    return join(projectDir, ".conversion", "sync", "project.lock");
-}
-async function readLockMetadata(dir) {
-    try {
-        const raw = await readFile(join(dir, "owner.json"), "utf8");
-        return JSON.parse(raw);
-    }
-    catch {
-        return null;
-    }
-}
-function isProcessAlive(pid) {
-    if (!Number.isInteger(pid) || pid <= 0)
-        return false;
-    try {
-        process.kill(pid, 0);
-        return true;
-    }
-    catch {
-        return false;
-    }
-}
-function isFreshLock(meta) {
-    if (!meta)
-        return false;
-    const heartbeatMs = Date.parse(meta.heartbeatAt);
-    if (!Number.isFinite(heartbeatMs))
-        return false;
-    return Date.now() - heartbeatMs < STALE_LOCK_MS && isProcessAlive(meta.pid);
-}
-async function writeLockMetadata(dir, projectDir, hubRoot) {
-    const now = new Date().toISOString();
-    const meta = {
-        pid: process.pid,
-        startedAt: now,
-        heartbeatAt: now,
-        version: VERSION,
-        projectDir,
-        hubRoot,
-    };
-    await writeFile(join(dir, "owner.json"), `${JSON.stringify(meta, null, 2)}\n`, "utf8");
-}
-async function acquireLock(projectDir, hubRoot) {
-    const dir = lockDir(projectDir, hubRoot);
-    await mkdir(dirname(dir), { recursive: true });
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-        try {
-            await mkdir(dir);
-            await writeLockMetadata(dir, projectDir, hubRoot);
-            return dir;
-        }
-        catch {
-            const meta = await readLockMetadata(dir);
-            if (isFreshLock(meta))
-                return null;
-            await rm(dir, { recursive: true, force: true });
-        }
-    }
-    return null;
-}
-async function releaseLock(dir) {
-    await rm(dir, { recursive: true, force: true });
-}
 async function reconcileSelectedProject(input) {
     const { project, auth, lastObserveKeys } = input;
-    const acquiredLock = await acquireLock(project.absolutePath, null);
+    const acquiredLock = await acquireMonitorLock({
+        projectDir: project.absolutePath,
+        hubRoot: null,
+        staleMs: STALE_LOCK_MS,
+    });
     if (!acquiredLock) {
         await log("info", `project ${project.key} skipped: lock in use`);
         return;
     }
+    const inFlightHeartbeats = new Set();
     const heartbeat = setInterval(() => {
-        void writeLockMetadata(acquiredLock, project.absolutePath, null).catch((err) => {
+        let pending;
+        pending = acquiredLock
+            .heartbeat()
+            .catch((err) => {
             void log("warn", `lock heartbeat failed ${project.key}: ${String(err)}`);
+        })
+            .finally(() => {
+            inFlightHeartbeats.delete(pending);
         });
+        inFlightHeartbeats.add(pending);
     }, HEARTBEAT_MS);
     try {
         const result = await reconcileSyncProject({
@@ -365,7 +301,13 @@ async function reconcileSelectedProject(input) {
     }
     finally {
         clearInterval(heartbeat);
-        await releaseLock(acquiredLock);
+        await Promise.allSettled([...inFlightHeartbeats]);
+        try {
+            await acquiredLock.release();
+        }
+        catch (error) {
+            await log("warn", `lock release failed ${project.key}: ${String(error)}`);
+        }
     }
 }
 async function mapLimit(items, limit, fn) {
