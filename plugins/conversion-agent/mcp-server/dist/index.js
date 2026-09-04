@@ -8106,7 +8106,7 @@ var require_cell = __commonJS({
         get tooltip() {
           return this.model.tooltip;
         }
-
+      
         set tooltip(value) {
           this.model.tooltip = value;
         } */
@@ -83158,7 +83158,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
             })));
           }
         }
-
+        
         if (${id}.value === undefined) {
           if (${k2} in input) {
             newResult[${k2}] = undefined;
@@ -83166,7 +83166,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
         } else {
           newResult[${k2}] = ${id}.value;
         }
-
+        
       `);
       } else {
         doc.write(`
@@ -83176,7 +83176,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
             path: iss.path ? [${k2}, ...iss.path] : [${k2}]
           })));
         }
-
+        
         if (${id}.value === undefined) {
           if (${k2} in input) {
             newResult[${k2}] = undefined;
@@ -83184,7 +83184,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
         } else {
           newResult[${k2}] = ${id}.value;
         }
-
+        
       `);
       }
     }
@@ -124142,6 +124142,9 @@ function renderRedlineHtml(document2) {
 
 // src/on-page/package.ts
 var REFERENCE_KEYS = Object.keys(ON_PAGE_ARTIFACT_STAGE);
+function invalidManifest(issue2) {
+  throw new Error(`invalid_manifest:${issue2}`);
+}
 function sourcePath(runSlug, file2) {
   return `deliverables/otimizacoes/${runSlug}/${file2}`;
 }
@@ -124174,15 +124177,17 @@ async function readSnapshotSource(projectRoot, relativePath, snapshot) {
   }
   return canonical.toString("utf8");
 }
-function parsedMarkdown(source) {
+function parsedMarkdown(source, onInvalidFrontmatter) {
   const parsed = parseFrontmatter(source);
   if (!parsed.ok || !parsed.frontmatter || parsed.body === void 0) {
-    throw new Error("invalid_manifest");
+    onInvalidFrontmatter();
   }
   return { frontmatter: parsed.frontmatter, body: parsed.body };
 }
 function validateCheckpoint(source, kind, runSlug, expectedSlug) {
-  const parsed = parsedMarkdown(source);
+  const parsed = parsedMarkdown(source, () => {
+    throw new Error(`invalid_${kind}`);
+  });
   const checkpoint = OnPageOptimizationCheckpointSchema.safeParse(parsed.frontmatter);
   if (!checkpoint.success || checkpoint.data.artifact_kind !== kind || checkpoint.data.optimization_ref !== runSlug || checkpoint.data.slug !== expectedSlug || checkpoint.data.status !== "aprovado") {
     throw new Error(`invalid_${kind}`);
@@ -124190,7 +124195,9 @@ function validateCheckpoint(source, kind, runSlug, expectedSlug) {
   return parsed.body;
 }
 function assertQaApproved(source, runSlug, expectedSlug) {
-  const parsed = parsedMarkdown(source);
+  const parsed = parsedMarkdown(source, () => {
+    throw new Error("qa_blocked");
+  });
   const qaResult = parsed.frontmatter.qa_result;
   const openP0 = parsed.frontmatter.open_p0;
   const openP1 = parsed.frontmatter.open_p1;
@@ -124215,21 +124222,21 @@ async function buildOnPagePackage(projectRoot, runSlug, snapshot) {
   const seoPath = sourcePath(runSlug, "05-seo.md");
   const qaPath = sourcePath(runSlug, "07-qa-report.md");
   const indexSource = await readSnapshotSource(resolvedProjectRoot, indexPath, snapshot);
-  const index2 = parsedMarkdown(indexSource);
+  const index2 = parsedMarkdown(indexSource, () => invalidManifest("frontmatter"));
   const parsedManifest = OnPageOptimizationManifestSchema.safeParse(index2.frontmatter);
-  if (!parsedManifest.success) throw new Error("invalid_manifest");
+  if (!parsedManifest.success) invalidManifest("schema");
   const manifest = parsedManifest.data;
   try {
     assertOnPageRunSlug(runSlug, manifest.canonical_url);
   } catch {
     throw new Error("invalid_run_slug");
   }
-  if (manifest.run_slug !== runSlug || manifest.archetype !== "blog" || manifest.current_stage !== "qa" || manifest.status !== "aprovado") {
-    throw new Error("invalid_manifest");
-  }
+  if (manifest.run_slug !== runSlug || manifest.archetype !== "blog") invalidManifest("schema");
+  if (manifest.current_stage !== "qa") invalidManifest("stage");
+  if (manifest.status !== "aprovado") invalidManifest("status");
   const references = REFERENCE_KEYS.map((key) => manifest.references[key]);
   if (references.some((reference) => reference === void 0) || new Set(references).size !== REFERENCE_KEYS.length) {
-    throw new Error("invalid_manifest");
+    invalidManifest("references");
   }
   const redlineSource = await readSnapshotSource(resolvedProjectRoot, redlinePath, snapshot);
   const seoSource = await readSnapshotSource(resolvedProjectRoot, seoPath, snapshot);
@@ -124339,6 +124346,17 @@ function snapshotConflict(materializeTool2) {
     hint: `The local project snapshot is stale or belongs to another scope; use the \`${materializeTool2}\` MCP tool and try again.`
   };
 }
+var MANIFEST_HINTS = {
+  frontmatter: "Return to the on-page run and restore the canonical index manifest before packaging.",
+  schema: "Return to the on-page run and complete the canonical index manifest before packaging.",
+  stage: "Return to the on-page run and advance it to QA before packaging.",
+  status: "Return to the on-page run and approve it before packaging.",
+  references: "Return to the on-page run and complete its canonical artifact references before packaging."
+};
+function manifestIssueFromMessage(message) {
+  const issue2 = message.slice("invalid_manifest:".length);
+  return Object.prototype.hasOwnProperty.call(MANIFEST_HINTS, issue2) ? issue2 : null;
+}
 function mapPackageError(error48, materializeTool2) {
   const message = error48 instanceof Error ? error48.message : "";
   if (message === "snapshot_conflict") return snapshotConflict(materializeTool2);
@@ -124350,6 +124368,17 @@ function mapPackageError(error48, materializeTool2) {
       error: "invalid_run",
       hint: "Use the canonical run_slug recorded in the run index before packaging."
     };
+  }
+  if (message.startsWith("invalid_manifest:")) {
+    const manifestIssue = manifestIssueFromMessage(message);
+    if (manifestIssue) {
+      return {
+        ok: false,
+        error: "invalid_run",
+        manifest_issue: manifestIssue,
+        hint: MANIFEST_HINTS[manifestIssue]
+      };
+    }
   }
   if (message === "invalid_manifest") {
     return {
@@ -126219,15 +126248,14 @@ docx/dist/index.mjs:
 
 docx/dist/index.mjs:
   (*!
-
+  
   JSZip v3.10.1 - A JavaScript class for generating and reading zip files
   <http://stuartk.com/jszip>
-
+  
   (c) 2009-2016 Stuart Knightley <stuart [at] stuartk.com>
   Dual licenced under the MIT license or GPLv3. See https://raw.github.com/Stuk/jszip/main/LICENSE.markdown.
-
+  
   JSZip uses the library pako released under the MIT license :
   https://github.com/nodeca/pako/blob/main/LICENSE
   *)
 */
-//# sourceMappingURL=index.js.map
