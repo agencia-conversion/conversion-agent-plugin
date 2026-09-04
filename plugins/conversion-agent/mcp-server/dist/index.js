@@ -124186,11 +124186,11 @@ function parsedMarkdown(source, onInvalidFrontmatter) {
 }
 function validateCheckpoint(source, kind, runSlug, expectedSlug) {
   const parsed = parsedMarkdown(source, () => {
-    throw new Error(`invalid_${kind}`);
+    throw new Error(kind === "redline" ? "invalid_redline:frontmatter" : "invalid_seo");
   });
   const checkpoint = OnPageOptimizationCheckpointSchema.safeParse(parsed.frontmatter);
   if (!checkpoint.success || checkpoint.data.artifact_kind !== kind || checkpoint.data.optimization_ref !== runSlug || checkpoint.data.slug !== expectedSlug || checkpoint.data.status !== "aprovado") {
-    throw new Error(`invalid_${kind}`);
+    throw new Error(kind === "redline" ? "invalid_redline:frontmatter" : "invalid_seo");
   }
   return parsed.body;
 }
@@ -124253,7 +124253,7 @@ async function buildOnPagePackage(projectRoot, runSlug, snapshot) {
   try {
     redline = parseRedlineMarkdown(redlineBody);
   } catch (error48) {
-    if (error48 instanceof RedlineParseError) throw new Error("invalid_redline");
+    if (error48 instanceof RedlineParseError) throw new Error(`invalid_redline:${error48.code}`);
     throw error48;
   }
   const seoRows = parseSeoPlan(seoBody);
@@ -124353,15 +124353,38 @@ var MANIFEST_HINTS = {
   status: "Return to the on-page run and approve it before packaging.",
   references: "Return to the on-page run and complete its canonical artifact references before packaging."
 };
+var REDLINE_HINTS = {
+  frontmatter: "Restore the canonical redline checkpoint metadata before packaging.",
+  unbalanced_tag: "Balance every bare <ins> and <del> tag before packaging.",
+  nested_change: "Do not nest changes; write replacements as </del><ins> without whitespace.",
+  missing_annotation: "Add [reason \xB7 P0], [reason \xB7 P1], or [reason \xB7 P2] immediately after each change.",
+  invalid_priority: "Use only P0, P1, or P2 in each redline annotation.",
+  unsafe_html: "Use only bare <ins> and <del> tags and headings H1 through H3."
+};
 function manifestIssueFromMessage(message) {
   const issue2 = message.slice("invalid_manifest:".length);
   return Object.prototype.hasOwnProperty.call(MANIFEST_HINTS, issue2) ? issue2 : null;
+}
+function redlineIssueFromMessage(message) {
+  const issue2 = message.slice("invalid_redline:".length);
+  return Object.prototype.hasOwnProperty.call(REDLINE_HINTS, issue2) ? issue2 : null;
 }
 function mapPackageError(error48, materializeTool2) {
   const message = error48 instanceof Error ? error48.message : "";
   if (message === "snapshot_conflict") return snapshotConflict(materializeTool2);
   if (message === "qa_blocked") return { ok: false, error: "qa_blocked" };
   if (message === "invalid_redline") return { ok: false, error: "invalid_redline" };
+  if (message.startsWith("invalid_redline:")) {
+    const redlineIssue = redlineIssueFromMessage(message);
+    if (redlineIssue) {
+      return {
+        ok: false,
+        error: "invalid_redline",
+        redline_issue: redlineIssue,
+        hint: REDLINE_HINTS[redlineIssue]
+      };
+    }
+  }
   if (message === "invalid_run_slug") {
     return {
       ok: false,

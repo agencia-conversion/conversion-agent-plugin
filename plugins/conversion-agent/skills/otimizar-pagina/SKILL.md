@@ -245,6 +245,29 @@ Use `package_on_page_optimization` no legado ou `searchhub_package_on_page_optim
 
 Na retomada, depois da confirmação explícita, registre-a como a próxima decisão `Dn` contígua e persista o `index.md` com a save tool do mesmo destino antes de concluir. Não execute o empacotamento novamente.
 
+## 7.1 Redline mecânico e retomável
+
+O `04-redline.md` precisa ter frontmatter de checkpoint `redline`, com `slug`
+exatamente igual a `references.redline`, `optimization_ref` igual ao `run_slug`,
+`stage: redline` e `status: aprovado`. O corpo aceita somente `<ins>` e `<del>`
+sem atributos, headings H1, H2 e H3 e texto Markdown.
+
+Cada alteração é seguida, na mesma linha, por uma anotação pública:
+
+```md
+<ins>[texto novo]</ins> [motivo · P0]
+<del>[texto antigo]</del><ins>[texto novo]</ins> [motivo · P1]
+```
+
+Não use linhas vazias dentro de uma alteração, não aninhe tags e não deixe
+espaço entre `</del><ins>` em uma substituição. Não use HTML adicional,
+comentários HTML, tags com atributos, `<br>` ou headings H4–H6.
+
+Se a package tool retornar `invalid_redline`, ela pode incluir um
+`redline_issue` seguro: `frontmatter`, `unbalanced_tag`, `nested_change`,
+`missing_annotation`, `invalid_priority` ou `unsafe_html`. Siga o `hint`,
+preserve o run e tente novamente; o retorno não contém o conteúdo do arquivo.
+
 ## 8. Tratar erros
 
 Em falha de autenticação, execute `auth_login_start` e `auth_login_poll` e retome a mesma operação. Em conflito, siga o `hint`, rematerialize se pedido e releia o índice e o checkpoint. Em erro de save ou package, preserve a etapa persistida e não avance nem publique em CMS.
