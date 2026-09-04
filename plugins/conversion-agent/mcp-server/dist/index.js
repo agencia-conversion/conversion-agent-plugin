@@ -124320,7 +124320,13 @@ function validateInput2(input) {
   if (Object.keys(input).some((key) => !INPUT_KEYS.has(key))) {
     return { ok: false, error: "bad_input" };
   }
-  if (!isValidOnPageRunSlug(input.run_slug)) return { ok: false, error: "invalid_run" };
+  if (!isValidOnPageRunSlug(input.run_slug)) {
+    return {
+      ok: false,
+      error: "invalid_run",
+      hint: "Use the canonical run_slug recorded in the run index before packaging."
+    };
+  }
   if (typeof input.ws_slug !== "string" || input.ws_slug.length === 0 || typeof input.proj_slug !== "string" || input.proj_slug.length === 0) {
     return { ok: false, error: "bad_input" };
   }
@@ -124338,8 +124344,19 @@ function mapPackageError(error48, materializeTool2) {
   if (message === "snapshot_conflict") return snapshotConflict(materializeTool2);
   if (message === "qa_blocked") return { ok: false, error: "qa_blocked" };
   if (message === "invalid_redline") return { ok: false, error: "invalid_redline" };
-  if (message === "invalid_run_slug" || message === "invalid_manifest") {
-    return { ok: false, error: "invalid_run" };
+  if (message === "invalid_run_slug") {
+    return {
+      ok: false,
+      error: "invalid_run",
+      hint: "Use the canonical run_slug recorded in the run index before packaging."
+    };
+  }
+  if (message === "invalid_manifest") {
+    return {
+      ok: false,
+      error: "invalid_run",
+      hint: "Return to the on-page run: approve QA and complete the canonical index manifest before packaging."
+    };
   }
   if (message.startsWith("missing_source:")) {
     return { ok: false, error: "missing_source" };
