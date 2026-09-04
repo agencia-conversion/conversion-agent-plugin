@@ -124145,6 +124145,13 @@ var REFERENCE_KEYS = Object.keys(ON_PAGE_ARTIFACT_STAGE);
 function invalidManifest(issue2) {
   throw new Error(`invalid_manifest:${issue2}`);
 }
+async function renderArtifact(issue2, render) {
+  try {
+    return await render();
+  } catch {
+    throw new Error(`render_error:${issue2}`);
+  }
+}
 function sourcePath(runSlug, file2) {
   return `deliverables/otimizacoes/${runSlug}/${file2}`;
 }
@@ -124256,7 +124263,7 @@ async function buildOnPagePackage(projectRoot, runSlug, snapshot) {
     if (error48 instanceof RedlineParseError) throw new Error(`invalid_redline:${error48.code}`);
     throw error48;
   }
-  const seoRows = parseSeoPlan(seoBody);
+  const seoRows = await renderArtifact("seo_plan", () => parseSeoPlan(seoBody));
   const base = `deliverables/otimizacoes/${runSlug}`;
   const artifacts = {
     seo_client_docx: `${base}/05-seo-cliente.docx`,
@@ -124271,10 +124278,10 @@ async function buildOnPagePackage(projectRoot, runSlug, snapshot) {
     artifacts
   });
   const [seoDocx, redlineDocx, redlineHtml, seoXlsx] = await Promise.all([
-    renderSeoClientDocx(seoBody, manifest.created_at),
-    renderRedlineDocx(redline, manifest.created_at),
-    Promise.resolve(renderRedlineHtml(redline)),
-    renderSeoPlanXlsx(seoRows, manifest.created_at)
+    renderArtifact("seo_docx", () => renderSeoClientDocx(seoBody, manifest.created_at)),
+    renderArtifact("redline_docx", () => renderRedlineDocx(redline, manifest.created_at)),
+    renderArtifact("redline_html", () => renderRedlineHtml(redline)),
+    renderArtifact("seo_xlsx", () => renderSeoPlanXlsx(seoRows, manifest.created_at))
   ]);
   const indexBytes = Buffer.from(
     buildMarkdown(nextManifest, index2.body),
@@ -124361,6 +124368,13 @@ var REDLINE_HINTS = {
   invalid_priority: "Use only P0, P1, or P2 in each redline annotation.",
   unsafe_html: "Use only bare <ins> and <del> tags and headings H1 through H3."
 };
+var RENDER_HINTS = {
+  seo_plan: "The SEO plan could not be generated; verify the public recommendations table.",
+  seo_docx: "The client SEO document could not be generated; verify the public SEO document structure.",
+  redline_docx: "The redline DOCX could not be generated; retry after rematerializing the approved run.",
+  redline_html: "The redline HTML could not be generated; retry after rematerializing the approved run.",
+  seo_xlsx: "The SEO plan spreadsheet could not be generated; verify the public recommendations table."
+};
 function manifestIssueFromMessage(message) {
   const issue2 = message.slice("invalid_manifest:".length);
   return Object.prototype.hasOwnProperty.call(MANIFEST_HINTS, issue2) ? issue2 : null;
@@ -124368,6 +124382,10 @@ function manifestIssueFromMessage(message) {
 function redlineIssueFromMessage(message) {
   const issue2 = message.slice("invalid_redline:".length);
   return Object.prototype.hasOwnProperty.call(REDLINE_HINTS, issue2) ? issue2 : null;
+}
+function renderIssueFromMessage(message) {
+  const issue2 = message.slice("render_error:".length);
+  return Object.prototype.hasOwnProperty.call(RENDER_HINTS, issue2) ? issue2 : null;
 }
 function mapPackageError(error48, materializeTool2) {
   const message = error48 instanceof Error ? error48.message : "";
@@ -124412,6 +124430,17 @@ function mapPackageError(error48, materializeTool2) {
   }
   if (message.startsWith("missing_source:")) {
     return { ok: false, error: "missing_source" };
+  }
+  if (message.startsWith("render_error:")) {
+    const renderIssue = renderIssueFromMessage(message);
+    if (renderIssue) {
+      return {
+        ok: false,
+        error: "render_error",
+        render_issue: renderIssue,
+        hint: RENDER_HINTS[renderIssue]
+      };
+    }
   }
   return { ok: false, error: "render_error" };
 }

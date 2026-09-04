@@ -268,6 +268,11 @@ Se a package tool retornar `invalid_redline`, ela pode incluir um
 `missing_annotation`, `invalid_priority` ou `unsafe_html`. Siga o `hint`,
 preserve o run e tente novamente; o retorno não contém o conteúdo do arquivo.
 
+Se a package tool retornar `render_error`, ela pode incluir um `render_issue` seguro:
+`seo_plan`, `seo_docx`, `redline_docx`, `redline_html` ou `seo_xlsx`.
+Siga o `hint`, preserve o run e tente novamente; o retorno não contém conteúdo,
+caminhos, linhas ou detalhes internos do renderer.
+
 ## 8. Tratar erros
 
 Em falha de autenticação, execute `auth_login_start` e `auth_login_poll` e retome a mesma operação. Em conflito, siga o `hint`, rematerialize se pedido e releia o índice e o checkpoint. Em erro de save ou package, preserve a etapa persistida e não avance nem publique em CMS.
