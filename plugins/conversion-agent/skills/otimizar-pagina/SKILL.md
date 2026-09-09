@@ -241,7 +241,7 @@ O empacotamento exige índice com `current_stage: qa` e `status: aprovado`, chec
 }
 ```
 
-Use `package_on_page_optimization` no legado ou `searchhub_package_on_page_optimization` no Search Hub. A tool cria os quatro artefatos canônicos (`05-seo-cliente.docx`, `redline.docx`, `redline.html` e `plano.xlsx`) e atualiza o índice atomicamente. Não gere esses arquivos localmente. Apresente `artifacts` e `url`, pare para a confirmação humana final; o sucesso da tool não é aprovação humana.
+Use `package_on_page_optimization` no legado ou `searchhub_package_on_page_optimization` no Search Hub. A tool cria o entregável principal do Brain, `resultado-final.md`, e os quatro anexos canônicos (`05-seo-cliente.docx`, `redline.docx`, `redline.html` e `plano.xlsx`), atualizando o índice atomicamente. Não gere esses arquivos localmente. Apresente `final_output` como resultado principal e `artifacts` como anexos; `url` continua apontando para o índice do run. Pare para a confirmação humana final; o sucesso da tool não é aprovação humana.
 
 Na retomada, depois da confirmação explícita, registre-a como a próxima decisão `Dn` contígua e persista o `index.md` com a save tool do mesmo destino antes de concluir. Não execute o empacotamento novamente.
 
