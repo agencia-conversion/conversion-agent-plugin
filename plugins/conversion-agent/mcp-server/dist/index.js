@@ -124158,6 +124158,45 @@ async function renderArtifact(issue2, render) {
 function sourcePath(runSlug, file2) {
   return `deliverables/otimizacoes/${runSlug}/${file2}`;
 }
+function finalOutputMarkdown(manifest, seoBody, redlineBody) {
+  const frontmatter = {
+    type: "otimizacao_on_page",
+    artifact_kind: "resultado_final",
+    slug: `${manifest.run_slug}-resultado-final`,
+    title: `Resultado final da otimiza\xE7\xE3o: ${manifest.title}`,
+    optimization_ref: manifest.run_slug,
+    status: "finalizado",
+    canonical_url: manifest.canonical_url,
+    keyword: manifest.keyword,
+    created_at: manifest.created_at,
+    updated_at: manifest.updated_at
+  };
+  const body = `# Resultado final da otimiza\xE7\xE3o on-page
+
+Este \xE9 o entreg\xE1vel final da otimiza\xE7\xE3o para revis\xE3o e publica\xE7\xE3o. Os arquivos DOCX, HTML e XLSX do mesmo diret\xF3rio s\xE3o anexos de apoio.
+
+## P\xE1gina otimizada
+
+- URL can\xF4nica: ${manifest.canonical_url}
+- Palavra-chave foco: ${manifest.keyword}
+
+## Documento SEO para cliente
+
+${seoBody.trim()}
+
+## Redline recomendado
+
+${redlineBody.trim()}
+
+## Anexos finais
+
+- \`05-seo-cliente.docx\`
+- \`redline.docx\`
+- \`redline.html\`
+- \`plano.xlsx\`
+`;
+  return Buffer.from(buildMarkdown(frontmatter, body), "utf8");
+}
 function isWithinRoot(root, target2) {
   const fromRoot = relative2(root, target2);
   return fromRoot !== "" && !fromRoot.startsWith("..") && !isAbsolute2(fromRoot);
@@ -124269,6 +124308,7 @@ async function buildOnPagePackage(projectRoot, runSlug, snapshot) {
   const seoRows = await renderArtifact("seo_plan", () => parseSeoPlan(seoBody));
   const base = `deliverables/otimizacoes/${runSlug}`;
   const artifacts = {
+    final_output_markdown: `${base}/resultado-final.md`,
     seo_client_docx: `${base}/05-seo-cliente.docx`,
     redline_docx: `${base}/redline.docx`,
     redline_html: `${base}/redline.html`,
@@ -124290,10 +124330,12 @@ async function buildOnPagePackage(projectRoot, runSlug, snapshot) {
     buildMarkdown(nextManifest, index2.body),
     "utf8"
   );
+  const finalOutputBytes = finalOutputMarkdown(manifest, seoBody, redlineBody);
   return {
     manifest: nextManifest,
     files: [
       { path: indexPath, bytes: indexBytes, mime: "text/markdown" },
+      { path: artifacts.final_output_markdown, bytes: finalOutputBytes, mime: "text/markdown" },
       {
         path: artifacts.seo_client_docx,
         bytes: seoDocx,
@@ -124557,16 +124599,32 @@ async function runPackageOnPageOptimization(input, cwd = process.cwd(), target2 
                 result = { ok: false, error: "backend_error" };
             }
           } else {
-            const artifactPaths = new Set(Object.values(built.manifest.artifacts));
-            result = {
-              ok: true,
-              run_slug: input.run_slug,
-              url: committed.url,
-              commit_id: committed.commit_id,
-              tree_hash: committed.tree_hash,
-              artifacts: committed.files.filter((file2) => artifactPaths.has(file2.path)),
-              ...committed.warning ? { warning: committed.warning } : {}
-            };
+            const finalOutputPath = built.manifest.artifacts.final_output_markdown;
+            const finalOutput = committed.files.find((file2) => file2.path === finalOutputPath);
+            if (!finalOutput || finalOutput.mime !== "text/markdown") {
+              result = { ok: false, error: "backend_error" };
+            } else {
+              const artifactPaths = /* @__PURE__ */ new Set([
+                built.manifest.artifacts.seo_client_docx,
+                built.manifest.artifacts.redline_docx,
+                built.manifest.artifacts.redline_html,
+                built.manifest.artifacts.seo_plan_xlsx
+              ]);
+              result = {
+                ok: true,
+                run_slug: input.run_slug,
+                url: committed.url,
+                commit_id: committed.commit_id,
+                tree_hash: committed.tree_hash,
+                final_output: {
+                  ...finalOutput,
+                  mime: "text/markdown",
+                  url: `${backendUrl}/p/${scope.ws_id}/${scope.proj_id}/file/${finalOutput.path}`
+                },
+                artifacts: committed.files.filter((file2) => artifactPaths.has(file2.path)),
+                ...committed.warning ? { warning: committed.warning } : {}
+              };
+            }
           }
         }
       }
