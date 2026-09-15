@@ -44,6 +44,7 @@ Liste em prosa de consultor as skills agrupadas por propósito. Use a tabela aba
 - `/buscar <termo>` — full-text no project.
 - `/abrir <slug>` — URL editor web.
 - `/historico` — últimos N commits do project.
+- `/limpar-entregavel <path>` — tira invisíveis e artefatos de tooling de um entregável já gravado.
 
 ### Admin (atalhos)
 
