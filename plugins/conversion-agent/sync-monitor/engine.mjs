@@ -3,7 +3,8 @@ import { chmod, mkdir, readFile, readdir, rename, stat, unlink, writeFile } from
 import { homedir } from "node:os";
 import { dirname, join, relative, sep } from "node:path";
 const BACKEND_URL = (process.env["CONVERSION_SYNC_TARGET"] === "searchhub"
-    ? (process.env["CONVERSION_SEARCHHUB_BACKEND_URL"] ?? "")
+    ? (process.env["CONVERSION_SEARCHHUB_BACKEND_URL"]?.trim() ||
+        "https://app.search-hub.conversion.com.br")
     : (process.env["CONVERSION_BACKEND_URL"] ?? "https://agent.conversion.com.br")).replace(/\/+$/u, "");
 function backendProtectionHeaders() {
     const secret = process.env["VERCEL_AUTOMATION_BYPASS_SECRET"]?.trim();
