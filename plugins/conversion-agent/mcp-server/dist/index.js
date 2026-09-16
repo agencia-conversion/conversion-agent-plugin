@@ -125129,7 +125129,7 @@ async function runSanitizeDeliverable(input, cwd = process.cwd(), target2 = {}) 
       return {
         ok: false,
         error: "not_found",
-        hint: `N\xE3o achei '${relPath}' no project. Rode \`materialize_project\` ou confira o caminho.`
+        hint: `N\xE3o achei '${relPath}' no project. Rode \`${target2.materializeTool ?? "materialize_project"}\` ou confira o caminho.`
       };
     }
     return {
@@ -126249,7 +126249,9 @@ function buildServer() {
         break;
       case "sanitize_deliverable":
         result = await runSanitizeDeliverable(
-          safeArgs
+          safeArgs,
+          process.cwd(),
+          sharedReadTarget()
         );
         break;
       case "get_content":
