@@ -97473,10 +97473,11 @@ var StdioServerTransport = class {
 
 // src/lib/config.ts
 var BACKEND_URL = (process.env["CONVERSION_BACKEND_URL"] ?? "https://agent.conversion.com.br").replace(/\/+$/u, "");
-var SEARCHHUB_BACKEND_URL = process.env["CONVERSION_SEARCHHUB_BACKEND_URL"] ? process.env["CONVERSION_SEARCHHUB_BACKEND_URL"].replace(/\/+$/u, "") : null;
+var DEFAULT_SEARCHHUB_BACKEND_URL = "https://app.search-hub.conversion.com.br";
+var SEARCHHUB_BACKEND_URL = (process.env["CONVERSION_SEARCHHUB_BACKEND_URL"]?.trim() || DEFAULT_SEARCHHUB_BACKEND_URL).replace(/\/+$/u, "");
 function toolsetMode() {
   const value = process.env["CONVERSION_TOOLSET_MODE"]?.trim().toLowerCase();
-  return value === "legacy" || value === "searchhub" || value === "parallel" ? value : "parallel";
+  return value === "legacy" || value === "searchhub" || value === "parallel" ? value : "searchhub";
 }
 function requireSearchHubBackendUrl() {
   if (!SEARCHHUB_BACKEND_URL) {
@@ -97689,9 +97690,15 @@ var SEARCHHUB_PROJECT_TOOL_NAMES = new Set(
   [...LEGACY_PROJECT_TOOL_NAMES].map((name) => `searchhub_${name}`)
 );
 function isToolEnabled(name, mode) {
-  if (LEGACY_PROJECT_TOOL_NAMES.has(name)) return mode !== "searchhub";
+  if (LEGACY_PROJECT_TOOL_NAMES.has(name)) return true;
   if (SEARCHHUB_PROJECT_TOOL_NAMES.has(name)) return mode !== "legacy";
   return true;
+}
+function resolveToolName(name, mode) {
+  if (mode === "searchhub" && LEGACY_PROJECT_TOOL_NAMES.has(name)) {
+    return `searchhub_${name}`;
+  }
+  return name;
 }
 
 // src/tools/auth.ts
@@ -126015,7 +126022,7 @@ var SERVER_NAME = "conversion-context";
 var SERVER_VERSION = "0.1.0";
 function sharedReadTarget() {
   return toolsetMode() === "searchhub" ? {
-    backendUrl: SEARCHHUB_BACKEND_URL ?? "http://searchhub-backend-not-configured.invalid",
+    backendUrl: SEARCHHUB_BACKEND_URL,
     hubFile: SEARCHHUB_HUB_FILE,
     materializeTool: "searchhub_materialize_project"
   } : {};
@@ -126180,9 +126187,10 @@ function buildServer() {
     };
   });
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
-    const { name, arguments: args } = request.params;
+    const { name: requestedName, arguments: args } = request.params;
     const safeArgs = args ?? {};
-    if (!isToolEnabled(name, toolsetMode())) {
+    const name = resolveToolName(requestedName, toolsetMode());
+    if (!isToolEnabled(requestedName, toolsetMode())) {
       return {
         isError: true,
         content: [
@@ -126191,7 +126199,7 @@ function buildServer() {
             text: JSON.stringify({
               ok: false,
               error: "unknown_tool",
-              hint: `No such tool: ${name}`
+              hint: `No such tool: ${requestedName}`
             })
           }
         ]
