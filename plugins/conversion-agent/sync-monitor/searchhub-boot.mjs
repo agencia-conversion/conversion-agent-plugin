@@ -1,8 +1,11 @@
 process.env["CONVERSION_SYNC_TARGET"] = "searchhub";
-// Antes do cutover, o monitor do Search Hub encerrava calado quando
-// `CONVERSION_SEARCHHUB_BACKEND_URL` não existia, porque só a coorte do
-// canário tinha a variável. Com o destino já em produção, o engine cai no
-// domínio padrão e o monitor sobe para todo mundo. Sem projeto
-// materializado no hub do Search Hub ele fica ocioso, como o legado.
+// Correção emergencial de 17/09/2026: o monitor do Search Hub só sobe para
+// quem configurou o destino explicitamente. O plugin 0.5.10 tinha removido
+// esta guarda, o que fez o monitor rodar para todos e bater em
+// `/api/v1/sync/config` com `401 identity_not_found`. O modo padrão voltou a
+// ser `legacy`, então o monitor também volta a ser opt-in.
+if (!process.env["CONVERSION_SEARCHHUB_BACKEND_URL"]) {
+    process.exit(0);
+}
 await import("./boot.mjs");
 export {};

@@ -97477,7 +97477,7 @@ var DEFAULT_SEARCHHUB_BACKEND_URL = "https://app.search-hub.conversion.com.br";
 var SEARCHHUB_BACKEND_URL = (process.env["CONVERSION_SEARCHHUB_BACKEND_URL"]?.trim() || DEFAULT_SEARCHHUB_BACKEND_URL).replace(/\/+$/u, "");
 function toolsetMode() {
   const value = process.env["CONVERSION_TOOLSET_MODE"]?.trim().toLowerCase();
-  return value === "legacy" || value === "searchhub" || value === "parallel" ? value : "searchhub";
+  return value === "legacy" || value === "searchhub" || value === "parallel" ? value : "legacy";
 }
 function requireSearchHubBackendUrl() {
   if (!SEARCHHUB_BACKEND_URL) {
