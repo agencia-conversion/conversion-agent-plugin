@@ -110,7 +110,7 @@ are sub-skills orchestrated by the redator.
 
 Antes de gravar o YAML, confirme que o CWD é um project-root (contém
 `.conversion/manifest.json`). Se não for, PARE e materialize o project
-pela MCP tool `materialize_project` (cria o `.conversion-hub.json` e baixa
+pela MCP tool `materialize_project` (cria o hub local e baixa
 os arquivos), ou peça ao usuário para `cd` até o project-root.
 Paths relativos ao CWD:
 - Artigo avulso: `conteudo/<slug>.yaml`.

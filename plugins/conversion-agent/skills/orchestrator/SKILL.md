@@ -78,7 +78,7 @@ Você **não improvisa** com conhecimento geral sobre SEO. Você **não usa WebS
 Invariante dura:
 
 - **Backend é a fonte única** de "quais workspaces e projects existem". Criar/editar/arquivar workspace ou project acontece **sempre** no backend (via UI admin `https://agent.conversion.com.br/admin` ou API admin).
-- **Hub local** (`.conversion-hub.json`) é **cache técnico passivo** — mapping `slug → UUID` + path relativo de projects **materializados** no disco. Não é catálogo canônico.
+- **Hub local** (`.conversion-searchhub-hub.json` no Search Hub, que é o padrão; `.conversion-hub.json` no legado) é **cache técnico passivo** — mapping `slug → UUID` + path relativo de projects **materializados** no disco. Não é catálogo canônico.
 - **Sync é passivo**: não há "refresh" manual de hub. Divergência (backend ganhou project novo; hub não sabe) é silenciosa até o momento de uso. Nesse momento, a tool MCP consulta o backend on-the-fly e adapta (materializa se preciso, erra claro se project inexistente).
 - **Erro duro** só quando backend rejeita (project deletado, sem permissão). Nunca por "hub desatualizado".
 - **Cache é conteúdo** (body de arquivos materializados), **nunca metadata de existência**.
@@ -208,9 +208,9 @@ Se o usuário rejeitar na entrega (Fase 4), reexecute a etapa com o feedback. **
 
 5. **Outputs sempre via MCP.** Skills gravam via `project_save_and_url` (arquivo único) ou `project_save_batch` (multi-arquivo atômico), passando `ws_slug` + `proj_slug` explicitamente. O push pro backend é implícito nessas tools. Nunca escreva direto no filesystem do project — sempre via MCP.
 
-6. **Hub silencioso.** Detecte com upward-walk a partir do CWD por `.conversion-hub.json` (interno, nunca cite pro usuário). Se ausente: materialize um project (tool `materialize_project`) — isso cria o hub no CWD. Dentro do hub, identifique o project-ativo pelo pedido ou liste via `list_workspaces_projects`. Jamais exponha paths, manifests, slugs ou nomes de tools ao usuário em contextos user-facing.
+6. **Hub silencioso.** Detecte o hub pela tool `get_active_project`: `hub_root` nulo significa que não há hub. Nunca procure o arquivo de hub no disco — o nome dele depende do destino (Search Hub ou legado) e só as tools sabem qual é o atual. Se não houver hub: materialize um project (tool `materialize_project`) — isso cria o hub no CWD. Dentro do hub, identifique o project-ativo pelo pedido ou liste via `list_workspaces_projects`. Jamais exponha paths, manifests, slugs ou nomes de tools ao usuário em contextos user-facing.
 
-7. **Não grave fora do project.** Arquivos só em `<hub>/<ws>/<proj>/`. Nunca em `$HOME`, `/tmp`, ou CWD que não seja project-root.
+7. **Não grave fora do project.** Arquivos só dentro da pasta do project materializado. Nunca em `$HOME`, `/tmp`, ou CWD que não seja project-root.
 
 8. **Orçamento com pausa.** Se uma tarefa excede 3 ciclos worker (rejeição na entrega + reexecução), **pare e informe o usuário** com estado + opções. Budget em silêncio é bug.
 
@@ -279,8 +279,8 @@ Se o pedido conflita com brain (ex: glossário marca "X" proibido, pedido usa "X
 ```
 <hub>/
   CLAUDE.md                             ← legado (CLI-era); playbook vivo = skill orchestrator
-  .conversion-hub.json                  ← registro de projects materializados
-  <workspace>/<project>/                ← materializado pela tool `materialize_project`
+  .conversion-searchhub-hub.json        ← registro de projects materializados (Search Hub, padrão)
+  searchhub/<workspace>/<project>/      ← materializado pela tool `materialize_project`
     .conversion/manifest.json
     _index.md                           ← contexto canônico do project
     sources/                            ← material bruto do cliente (imutável)
@@ -386,7 +386,7 @@ Quando existe um CLAUDE.md local (materializações antigas, CLI-era), ele e a s
 ## Troubleshooting
 
 - **Magic link não confirma:** o usuário deve clicar no link recebido por e-mail. Reenvie com a tool `auth_login_start` e faça poll com `auth_login_poll`.
-- **Sessão fora de hub:** se não há `.conversion-hub.json`, materialize um project (tool `materialize_project`) — isso cria o hub. Sem hub/project ativo, nenhuma skill de conteúdo executa.
+- **Sessão fora de hub:** se `get_active_project` devolve `hub_root` nulo, materialize um project (tool `materialize_project`) — isso cria o hub. Sem hub/project ativo, nenhuma skill de conteúdo executa.
 - **Pedido cruza dois projects:** Consultor pausa, reconfirma qual project atender, opcionalmente oferece abrir o segundo em follow-up separado.
 - **`brain/<file>.md ausente`:** `materialize_project` só baixa o que já existe no backend — não cria brain do zero. O cofre de provas (`provas.md`/`fontes.md`) e o catálogo de produtos (`produtos.md`) são semeados pela tool `ensure_brain_vault` quando o project vira ativo (idempotente). Os 5 centrais ausentes são populados por trabalho editorial + brain-update, não auto-criados.
 - **Project não encontrado no hub mas existe no backend**: chame `materialize_project` silenciosamente e prossiga. Não peça permissão — é operação trivial.

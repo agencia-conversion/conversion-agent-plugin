@@ -16,8 +16,10 @@ Atalho de navegação por project.
 
 1. **Sem arg**:
    - Resolve workspace ativo via `get_active_project` (campo `ws_slug`).
-   - Lista projects materializados do ws (parse `.conversion-hub.json`
-     via Read, OU a MCP tool `list_workspaces_projects`).
+   - Lista os projects com a MCP tool `list_workspaces_projects`. **Não leia
+     arquivo de hub do disco:** o nome do hub muda com o destino (Search Hub ou
+     legado) e só as tools sabem qual é o atual. Ler o arquivo direto mostra
+     projetos do destino errado.
    - Indicador `●` no ativo. Convite: *"Pra trocar, `/projeto <slug>`."*
 
 2. **Com arg `<proj-slug>`** (sem ws-slug):
