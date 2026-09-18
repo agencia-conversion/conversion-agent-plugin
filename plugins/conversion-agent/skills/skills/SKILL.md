@@ -48,8 +48,8 @@ Liste em prosa de consultor as skills agrupadas por propósito. Use a tabela aba
 
 ### Admin (atalhos)
 
-- `/novo-workspace` — cria workspace.
-- `/novo-projeto` — cria project no ws ativo.
+- `/novo-workspace` — explica como os vaults de squad nascem no Brain e encaminha o pedido.
+- `/novo-projeto` — cria o projeto de um cliente cadastrado no vault da squad, no Brain do Search Hub.
 - `/convidar <email>` — convida member.
 
 ### Discovery

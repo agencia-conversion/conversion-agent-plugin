@@ -1,28 +1,37 @@
 ---
 name: novo-workspace
-description: Cria um novo workspace. Pode ser invocada com args (`/novo-workspace acme --name "Acme"`) ou sem args (Consultor pergunta slug + nome em uma linha cada). Use quando o usuário disser "cria um workspace pra X", "novo cliente", "workspace pra agência Y".
+description: >-
+  Explica como os vaults (workspaces) de squad funcionam no Brain do Search Hub
+  e para onde encaminhar um pedido de novo workspace. Use quando o usuário
+  disser "cria um workspace pra X", "nova squad no Brain", "vault novo",
+  "workspace pra agência Y".
 ---
 
-# /conversion-agent:novo-workspace [<slug>] [--name "Nome"]
+# /conversion-agent:novo-workspace
 
-Cria um novo workspace.
-
-> **Nota:** o CLI `conversion` foi descontinuado e ainda **não há MCP tool**
-> de criação de workspace. A criação é feita no app web (admin) por um
-> administrador — esta skill valida os dados e encaminha o usuário pra lá.
+No Brain do Search Hub, **cada squad tem um vault**, e os vaults não são
+criados sob demanda: são provisionados a partir do cadastro de squads do
+Search Hub. Por isso esta skill não cria nada — ela orienta.
 
 ## Comportamento
 
-1. **Colete slug + nome** (dos args, ou perguntando o que falta — slug
-   primeiro, depois nome). Validações:
-   - Slug: kebab-case, 2-80 chars, sem espaço, sem acento. Se inválido, explique exatamente o quê e peça de novo.
-   - Nome: 1-200 chars, qualquer charset razoável.
-2. **Criação (app web)**: oriente o usuário a criar o workspace no admin —
-   https://agent.conversion.com.br/admin/ws — com o slug + nome validados.
-   (Só admin cria workspace; se slug duplicado, o app avisa — peça outro.)
-3. Sugira próximo passo: `/novo-projeto <slug>/<projeto-slug> --name "Nome"` se o usuário pareceu pronto pra criar project também.
+1. Liste os vaults que o usuário já acessa com
+   `searchhub_list_workspaces_projects`. Muitas vezes o pedido é, na verdade,
+   um **projeto** novo dentro de um vault que já existe — nesse caso, encaminhe
+   para `/novo-projeto`.
+2. Se for mesmo uma **squad nova**: explique que o vault nasce quando a squad
+   é cadastrada no Search Hub e o provisionamento roda. Peça que o usuário
+   acione quem administra o cadastro de squads.
+3. Se for um **cliente novo**, não um vault: o cliente precisa ser cadastrado
+   no Search Hub com a squad responsável; depois, `/novo-projeto` cria o Brain.
+
+## Quando o plugin está no modo legado
+
+Com `CONVERSION_TOOLSET_MODE=legacy`, workspaces são os do app web antigo e
+continuam sendo criados no admin, por um administrador:
+https://agent.conversion.com.br/admin/ws.
 
 ## Regras
 
-- **Não exponha curl/API direto** — a criação é feita pela UI admin do app web.
-- Linguagem de cliente. Zero jargão técnico (slug é OK, é vocabulário do usuário do plugin).
+- Não prometa criar vault. A decisão é de cadastro, não do plugin.
+- Linguagem de cliente, sem jargão técnico.
