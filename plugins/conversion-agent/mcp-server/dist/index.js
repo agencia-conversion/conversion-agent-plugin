@@ -97477,7 +97477,7 @@ var DEFAULT_SEARCHHUB_BACKEND_URL = "https://app.search-hub.conversion.com.br";
 var SEARCHHUB_BACKEND_URL = (process.env["CONVERSION_SEARCHHUB_BACKEND_URL"]?.trim() || DEFAULT_SEARCHHUB_BACKEND_URL).replace(/\/+$/u, "");
 function toolsetMode() {
   const value = process.env["CONVERSION_TOOLSET_MODE"]?.trim().toLowerCase();
-  return value === "legacy" || value === "searchhub" || value === "parallel" ? value : "legacy";
+  return value === "legacy" || value === "searchhub" || value === "parallel" ? value : "searchhub";
 }
 function requireSearchHubBackendUrl() {
   if (!SEARCHHUB_BACKEND_URL) {
@@ -97689,9 +97689,11 @@ var LEGACY_PROJECT_TOOL_NAMES = /* @__PURE__ */ new Set([
 var SEARCHHUB_PROJECT_TOOL_NAMES = new Set(
   [...LEGACY_PROJECT_TOOL_NAMES].map((name) => `searchhub_${name}`)
 );
+var SEARCHHUB_ONLY_TOOL_NAMES = /* @__PURE__ */ new Set(["searchhub_create_project"]);
 function isToolEnabled(name, mode) {
   if (LEGACY_PROJECT_TOOL_NAMES.has(name)) return true;
   if (SEARCHHUB_PROJECT_TOOL_NAMES.has(name)) return mode !== "legacy";
+  if (SEARCHHUB_ONLY_TOOL_NAMES.has(name)) return mode !== "legacy";
   return true;
 }
 function resolveToolName(name, mode) {
@@ -125147,6 +125149,128 @@ async function runSanitizeDeliverable(input, cwd = process.cwd(), target2 = {}) 
   }
 }
 
+// src/tools/searchhub-create-project.ts
+var SEARCHHUB_CREATE_PROJECT_INPUT_SCHEMA = {
+  type: "object",
+  properties: {
+    ws_slug: {
+      type: "string",
+      minLength: 1,
+      description: "Slug do vault da squad (ex: 'squad-gaia-ff28e12f'). Liste com `searchhub_list_workspaces_projects`."
+    },
+    client: {
+      type: "string",
+      minLength: 2,
+      maxLength: 200,
+      description: "Nome do CLIENTE como est\xE1 no cadastro (ex: 'Allianz', 'Bransales'). N\xE3o \xE9 o nome do grupo."
+    },
+    name: {
+      type: "string",
+      minLength: 1,
+      maxLength: 200,
+      description: "Nome de exibi\xE7\xE3o opcional. Padr\xE3o: o pr\xF3prio nome do cliente."
+    }
+  },
+  required: ["ws_slug", "client"],
+  additionalProperties: false
+};
+var SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+function slugifyClientName(value) {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+async function runSearchHubCreateProject(input, backendUrl = requireSearchHubBackendUrl()) {
+  const wsSlug = typeof input?.ws_slug === "string" ? input.ws_slug.trim() : "";
+  const client = typeof input?.client === "string" ? input.client.trim() : "";
+  if (!wsSlug) return { ok: false, error: "bad_input", hint: "Informe `ws_slug`, o vault da squad." };
+  if (client.length < 2) {
+    return { ok: false, error: "bad_input", hint: "Informe `client` com o nome do cliente como est\xE1 no cadastro." };
+  }
+  const slug = slugifyClientName(client);
+  if (!SLUG.test(slug) || slug.length < 2 || slug.length > 80) {
+    return { ok: false, error: "bad_input", hint: `N\xE3o consegui derivar um slug v\xE1lido de '${client}'.` };
+  }
+  const name = typeof input.name === "string" && input.name.trim() || client;
+  try {
+    const { workspaces } = await authenticatedJsonAt(backendUrl, "/api/v1/user/workspaces", { method: "GET" });
+    const workspace = workspaces.find((ws) => ws.slug === wsSlug);
+    if (!workspace) {
+      return {
+        ok: false,
+        error: "workspace_not_found",
+        hint: `Vault '${wsSlug}' n\xE3o encontrado. Vaults dispon\xEDveis: ` + workspaces.map((ws) => `${ws.slug} (${ws.name})`).join(", ")
+      };
+    }
+    const before = await authenticatedJsonAt(
+      backendUrl,
+      `/api/v1/ws/${workspace.id}/projects`,
+      { method: "GET" }
+    );
+    const existing = new Set(before.projects.map((project2) => project2.id));
+    const { project } = await authenticatedJsonAt(
+      backendUrl,
+      `/api/v1/ws/${workspace.id}/projects`,
+      { method: "POST", body: JSON.stringify({ slug, name }) }
+    );
+    return {
+      ok: true,
+      created: !existing.has(project.id),
+      project,
+      workspace: { id: workspace.id, slug: workspace.slug }
+    };
+  } catch (err2) {
+    return mapError5(err2, client);
+  }
+}
+function mapError5(err2, client) {
+  if (err2 instanceof SkillNotFoundError) {
+    return {
+      ok: false,
+      error: "client_not_found",
+      hint: `Nenhum cliente ativo chamado '${client}' nesta squad. Use o nome do CLIENTE, n\xE3o o do grupo (ex.: o grupo Atacad\xE3o Pneus tem o cliente Bransales), e confirme que a squad respons\xE1vel por ele \xE9 a deste vault.`
+    };
+  }
+  if (err2 instanceof BackendError) {
+    if (err2.status === 409 && err2.detail.includes("ambiguous_slug")) {
+      return {
+        ok: false,
+        error: "ambiguous_client",
+        hint: `H\xE1 mais de um cliente com o nome '${client}' nesta squad. Pe\xE7a a corre\xE7\xE3o do cadastro.`
+      };
+    }
+    if (err2.status === 503 && err2.detail.includes("writes_disabled")) {
+      return {
+        ok: false,
+        error: "writes_disabled",
+        hint: "A escrita no Brain do Search Hub est\xE1 desligada no servidor. N\xE3o \xE9 algo da sua conta."
+      };
+    }
+    if (err2.status === 503) {
+      return {
+        ok: false,
+        error: "provision_pending",
+        hint: "O Brain est\xE1 sendo provisionado. Tente de novo em alguns instantes; a chamada \xE9 idempotente."
+      };
+    }
+    return { ok: false, error: "backend_error", hint: `HTTP ${err2.status}: ${err2.detail.slice(0, 200)}` };
+  }
+  if (err2 instanceof NotAuthenticatedError) {
+    return { ok: false, error: "not_authenticated", hint: "Fa\xE7a login com `auth_login_start`." };
+  }
+  if (err2 instanceof SessionExpiredError) {
+    return { ok: false, error: "session_expired", hint: "Sess\xE3o expirada ou conta sem acesso ao Search Hub." };
+  }
+  if (err2 instanceof RateLimitedError) {
+    return {
+      ok: false,
+      error: "rate_limited",
+      hint: `Tente de novo em ${err2.retryAfterSec}s.`,
+      retry_after_sec: err2.retryAfterSec
+    };
+  }
+  if (err2 instanceof NetworkError) return { ok: false, error: "network_error", hint: err2.detail };
+  return { ok: false, error: "backend_error", hint: err2 instanceof Error ? err2.message : String(err2) };
+}
+
 // src/tools/search-project.ts
 var VALID_TYPES = /* @__PURE__ */ new Set([
   "artigo",
@@ -125225,10 +125349,10 @@ async function runSearchProject(input, cwd = process.cwd(), target2 = {}) {
     const body = target2.backendUrl ? await authenticatedJsonAt(target2.backendUrl, path, { method: "GET" }) : await authenticatedJson(path, { method: "GET" });
     return { ok: true, items: body.items, total: body.total };
   } catch (err2) {
-    return mapError5(err2);
+    return mapError6(err2);
   }
 }
-function mapError5(err2) {
+function mapError6(err2) {
   if (err2 instanceof NotAuthenticatedError) {
     return {
       ok: false,
@@ -126100,6 +126224,11 @@ function buildServer() {
         inputSchema: SANITIZE_DELIVERABLE_INPUT_SCHEMA
       },
       {
+        name: "searchhub_create_project",
+        description: "SearchHub-only: cria o projeto de um cliente no vault de uma squad, provisionando o Brain dele. So funciona para cliente ja cadastrado, ativo e com a squad do vault como responsavel; nao cria projeto avulso. Passe o nome do CLIENTE, nao o do grupo. Um Brain por grupo, e a chamada e idempotente: se ja existe, devolve o projeto com created=false.",
+        inputSchema: SEARCHHUB_CREATE_PROJECT_INPUT_SCHEMA
+      },
+      {
         name: "get_content",
         description: "Fetches a single projected content entity by slug. Returns frontmatter + a 500-char body preview.",
         inputSchema: GET_CONTENT_INPUT_SCHEMA
@@ -126260,6 +126389,11 @@ function buildServer() {
           safeArgs,
           process.cwd(),
           sharedReadTarget()
+        );
+        break;
+      case "searchhub_create_project":
+        result = await runSearchHubCreateProject(
+          safeArgs
         );
         break;
       case "get_content":

@@ -11,6 +11,20 @@ const STALE_LOCK_MS = 45_000;
 const PROJECT_CONCURRENCY = 2;
 const PLUGIN_NAME = "conversion-agent";
 const SYNC_TARGET = process.env["CONVERSION_SYNC_TARGET"] === "searchhub" ? "searchhub" : "legacy";
+// No modo `searchhub`, que é o padrão, o Brain vive só no Search Hub: deixar o
+// monitor legado reconciliando a árvore antiga significaria puxar e empurrar
+// conteúdo de um destino que ninguém mais usa. Ele volta a subir em `legacy` e
+// em `parallel`, este último por causa do canário. O monitor do Search Hub tem
+// a guarda simétrica em `searchhub-boot.mts`.
+if (SYNC_TARGET === "legacy") {
+    const toolsetMode = process.env["CONVERSION_TOOLSET_MODE"]?.trim().toLowerCase();
+    const effectiveMode = toolsetMode === "legacy" || toolsetMode === "parallel" || toolsetMode === "searchhub"
+        ? toolsetMode
+        : "searchhub";
+    if (effectiveMode === "searchhub") {
+        process.exit(0);
+    }
+}
 const HUB_FILE = process.env["CONVERSION_SYNC_HUB_FILE"] ??
     (SYNC_TARGET === "searchhub" ? ".conversion-searchhub-hub.json" : ".conversion-hub.json");
 const LOG_FILE = SYNC_TARGET === "searchhub" ? "searchhub-sync-monitor.log" : "sync-monitor.log";

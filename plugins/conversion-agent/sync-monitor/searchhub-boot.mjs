@@ -1,10 +1,14 @@
 process.env["CONVERSION_SYNC_TARGET"] = "searchhub";
-// Correção emergencial de 17/09/2026: o monitor do Search Hub só sobe para
-// quem configurou o destino explicitamente. O plugin 0.5.10 tinha removido
-// esta guarda, o que fez o monitor rodar para todos e bater em
-// `/api/v1/sync/config` com `401 identity_not_found`. O modo padrão voltou a
-// ser `legacy`, então o monitor também volta a ser opt-in.
-if (!process.env["CONVERSION_SEARCHHUB_BACKEND_URL"]) {
+/**
+ * O monitor do Search Hub sobe por padrão: desde o cutover, é o Search Hub
+ * que guarda o Brain. Ele só não sobe quando alguém fixa o modo `legacy`,
+ * que é a alavanca de rollback.
+ *
+ * A URL tem fallback de produção no engine, então não há mais a guarda por
+ * `CONVERSION_SEARCHHUB_BACKEND_URL` que existia no canário.
+ */
+const mode = process.env["CONVERSION_TOOLSET_MODE"]?.trim().toLowerCase();
+if (mode === "legacy") {
     process.exit(0);
 }
 await import("./boot.mjs");
