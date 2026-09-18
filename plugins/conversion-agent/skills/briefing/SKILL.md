@@ -72,7 +72,7 @@ invisible in normal `off` mode and does not change the old workflow.
 
 Antes de gravar o YAML, confirme que o CWD é um project-root (contém
 `.conversion/manifest.json`). Se não for, PARE e materialize o project
-pela MCP tool `materialize_project` (cria o `.conversion-hub.json` e baixa
+pela MCP tool `materialize_project` (cria o hub local e baixa
 os arquivos), ou peça ao usuário para `cd` até o project-root.
 Cada project representa uma "marca" — não há mais pasta `<marca>/`.
 

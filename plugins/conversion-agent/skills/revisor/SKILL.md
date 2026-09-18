@@ -75,7 +75,7 @@ Execute the five phases in order:
 
 Antes de gravar o YAML revisado, confirme que o CWD é um project-root
 (contém `.conversion/manifest.json`). Se não for, PARE e materialize o
-project pela tool MCP `materialize_project` (cria o `.conversion-hub.json`
+project pela tool MCP `materialize_project` (cria o hub local
 e baixa os arquivos). O path de entrada é relativo ao CWD
 (ex: `conteudo/<slug>.yaml`).
 
