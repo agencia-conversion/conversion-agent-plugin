@@ -12,7 +12,7 @@ Selecione um único destino antes de qualquer leitura ou gravação e mantenha o
 - legado: `materialize_project` + `project_save_batch` + `package_on_page_optimization`;
 - Search Hub: `searchhub_materialize_project` + `searchhub_project_save_batch` + `searchhub_package_on_page_optimization`.
 
-Em modo `parallel`, escolha explicitamente um destino; hubs e árvores materializadas são isolados. Nunca misture os trios, faça dual-write ou tente fallback silencioso. Reúna URL HTTP(S), keyword foco, `ws_slug` e `proj_slug` explícitos. Resolva os slugs com `list_workspaces_projects` no legado ou `searchhub_list_workspaces_projects` no Search Hub quando necessário.
+Em modo `parallel`, escolha explicitamente um destino; hubs e árvores materializadas são isolados. Nunca misture os trios, faça dual-write ou tente fallback silencioso. A escolha vale para gravação e para as leituras de entregável — o Brain é exceção e sai sempre do Search Hub (etapa 3.1). Reúna URL HTTP(S), keyword foco, `ws_slug` e `proj_slug` explícitos. Resolva os slugs com `list_workspaces_projects` no legado ou `searchhub_list_workspaces_projects` no Search Hub quando necessário.
 
 Aceite somente `archetype: blog`. Um CSV local autorizado do Google Search Console (GSC) é opcional. A skill recomenda alterações e nunca publica em uma página ou CMS.
 
@@ -69,6 +69,24 @@ booleanos, objetos, arrays nem o conteúdo do CSV:
 Use o `input_hash` SHA-256 calculado na etapa anterior. Em sucesso, aplique
 silenciosamente `guardrail`, `methodology`, `prompts`, `tools_available` e
 `quality_gates` retornados. Em erro, apresente o `hint` e pare.
+
+## 3.1 Ler o Brain do Search Hub
+
+Chame `read_brain({ ws_slug, proj_slug })` antes da primeira fase e aplique tom
+de voz, glossário, decisões, aprendizados, personas, produtos, fontes e provas
+que existirem. É obrigatório, em qualquer modo de toolset e qualquer que seja o
+destino de gravação escolhido na etapa 1: o Brain mora no Search Hub, então
+`read_brain` lê de lá sempre.
+
+Nunca grave, edite ou complete arquivos em `brain/` — a otimização é somente
+leitora do Brain.
+
+Falha de leitura não é Brain vazio. Em `not_in_hub` ou `project_not_in_hub`,
+execute `searchhub_materialize_project({ ws_slug, proj_slug })` e repita; em
+falha de autenticação, `auth_login_start` e `auth_login_poll`, e repita. Só
+registre `brain_context: empty` quando a leitura tiver sucesso e vier vazia —
+nesse caso, siga apenas com recomendações que não dependam de política da marca
+e diga ao humano que o Brain do cliente está sem conteúdo.
 
 ## 4. Contrato público de persistência
 

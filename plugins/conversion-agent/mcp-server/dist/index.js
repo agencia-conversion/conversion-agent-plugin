@@ -126151,6 +126151,13 @@ function sharedReadTarget() {
     materializeTool: "searchhub_materialize_project"
   } : {};
 }
+function brainReadTarget() {
+  return toolsetMode() === "legacy" ? {} : {
+    backendUrl: SEARCHHUB_BACKEND_URL,
+    hubFile: SEARCHHUB_HUB_FILE,
+    materializeTool: "searchhub_materialize_project"
+  };
+}
 function buildServer() {
   const server = new Server(
     { name: SERVER_NAME, version: SERVER_VERSION },
@@ -126381,7 +126388,7 @@ function buildServer() {
         result = await runReadBrain(
           safeArgs,
           process.cwd(),
-          sharedReadTarget()
+          brainReadTarget()
         );
         break;
       case "sanitize_deliverable":
