@@ -98059,15 +98059,19 @@ async function persistRenewedToken(email3, renewed) {
 `);
   }
 }
-async function authenticatedFetch(path, opts = { method: "GET" }) {
+async function authenticatedFetch(path, opts = {
+  method: "GET"
+}) {
   return authenticatedFetchAt(BACKEND_URL, path, opts);
 }
-async function authenticatedFetchAt(backendUrl, path, opts = { method: "GET" }) {
+async function authenticatedFetchAt(backendUrl, path, opts = {
+  method: "GET"
+}) {
   const cred = await getToken();
   if (!cred) throw new NotAuthenticatedError();
   const url2 = `${backendUrl}${path}`;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
+  const requestSignal = opts.signal ? AbortSignal.any([opts.signal, timeoutSignal]) : timeoutSignal;
   let res;
   try {
     res = await fetch(url2, {
@@ -98079,14 +98083,12 @@ async function authenticatedFetchAt(backendUrl, path, opts = { method: "GET" }) 
         ...opts.body !== void 0 ? { "content-type": "application/json" } : {}
       },
       body: opts.body,
-      signal: controller.signal
+      signal: requestSignal
     });
   } catch (err2) {
-    clearTimeout(timer);
     const detail = err2 instanceof Error ? err2.message : String(err2);
     throw new NetworkError(detail);
   }
-  clearTimeout(timer);
   const renewed = res.headers.get("x-renewed-token");
   if (renewed) {
     await persistRenewedToken(cred.email, renewed);
@@ -98097,7 +98099,9 @@ async function authenticatedFetchAt(backendUrl, path, opts = { method: "GET" }) 
     let scope = "unknown";
     try {
       const body = await res.clone().json();
-      if (body.scope === "hourly" || body.scope === "daily") scope = body.scope;
+      if (body.scope === "minute" || body.scope === "hourly" || body.scope === "daily") {
+        scope = body.scope;
+      }
     } catch {
     }
     throw new RateLimitedError(scope, parseRetryAfter(res));
@@ -125463,20 +125467,83 @@ async function runSetActiveProject(input, cwd = process.cwd(), hubFile = HUB_FIL
 }
 
 // src/tools/sync.ts
+import { createHash as createHash4 } from "crypto";
 import { existsSync } from "fs";
-import { mkdir as mkdir6, readFile as readFile7, readdir as readdir2, stat as stat3, writeFile as writeFile7 } from "fs/promises";
+import { mkdir as mkdir6, readFile as readFile7, readdir as readdir2, rm as rm3, stat as stat3, writeFile as writeFile7 } from "fs/promises";
 import { homedir as homedir2 } from "os";
 import { dirname as dirname6, isAbsolute as isAbsolute4, join as join7, relative as relative3, resolve as resolve4 } from "path";
 import { fileURLToPath } from "url";
+
+// src/lib/rate-limit-retry.ts
+var defaultSleep = (milliseconds, signal) => new Promise((resolve5, reject2) => {
+  if (signal?.aborted) {
+    reject2(signal.reason ?? new Error("Operation aborted"));
+    return;
+  }
+  const onAbort = () => {
+    clearTimeout(timer);
+    reject2(signal?.reason ?? new Error("Operation aborted"));
+  };
+  const timer = setTimeout(() => {
+    signal?.removeEventListener("abort", onAbort);
+    resolve5();
+  }, milliseconds);
+  signal?.addEventListener("abort", onAbort, { once: true });
+});
+async function retryRateLimited(operation, options = {}) {
+  const maxRetries = options.maxRetries ?? 3;
+  const maxTotalWaitMs = options.maxTotalWaitMs ?? 6e4;
+  const sleep = options.sleep ?? defaultSleep;
+  const now = options.now ?? Date.now;
+  const startedAt = now();
+  let retries = 0;
+  for (; ; ) {
+    options.signal?.throwIfAborted();
+    try {
+      return await operation();
+    } catch (error48) {
+      if (!(error48 instanceof RateLimitedError) || retries >= maxRetries || options.shouldRetry && !options.shouldRetry(error48)) {
+        throw error48;
+      }
+      const waitMs = error48.retryAfterSec * 1e3;
+      if (waitMs > Math.max(0, maxTotalWaitMs - (now() - startedAt))) {
+        throw error48;
+      }
+      retries += 1;
+      if (options.signal) await sleep(waitMs, options.signal);
+      else await sleep(waitMs);
+    }
+  }
+}
+function createRequestPacer(intervalMs, options = {}) {
+  const now = options.now ?? Date.now;
+  const sleep = options.sleep ?? defaultSleep;
+  let lastStartedAt = null;
+  return async () => {
+    const current = now();
+    if (lastStartedAt !== null) {
+      const waitMs = Math.max(0, lastStartedAt + intervalMs - current);
+      if (waitMs > 0) await sleep(waitMs);
+    }
+    lastStartedAt = now();
+  };
+}
+
+// src/tools/sync.ts
 var LEGACY_TARGET = {
+  kind: "legacy",
   backendUrl: BACKEND_URL,
   hubFile: HUB_FILE,
   projectPrefix: null,
   syncDir: "sync",
   logFile: "sync-monitor.log"
 };
+var MATERIALIZE_DOWNLOAD_INTERVAL_MS = 125;
+var MATERIALIZE_RETRY_WAIT_BUDGET_MS = 65e3;
+var MATERIALIZE_CHECKPOINT_FILE = ".conversion/materialize-checkpoint.json";
 function searchHubTarget() {
   return {
+    kind: "searchhub",
     backendUrl: requireSearchHubBackendUrl(),
     hubFile: SEARCHHUB_HUB_FILE,
     projectPrefix: "searchhub",
@@ -125669,7 +125736,36 @@ async function runSyncDoctor(input = {}, cwd = process.cwd(), target2 = LEGACY_T
     } : {}
   };
 }
-async function runMaterializeProject(input, cwd = process.cwd(), target2 = LEGACY_TARGET) {
+function isMaterializeCheckpoint(value) {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value;
+  if (!(candidate.commitId === null || typeof candidate.commitId === "string") || typeof candidate.treeHash !== "string" || !candidate.files || typeof candidate.files !== "object") {
+    return false;
+  }
+  return Object.values(candidate.files).every(
+    (file2) => file2 && typeof file2 === "object" && typeof file2.sha256 === "string" && typeof file2.size === "number" && typeof file2.mime === "string"
+  );
+}
+async function readMaterializeCheckpoint(projectRoot, commitId, treeHash) {
+  const value = await readJsonFile2(join7(projectRoot, MATERIALIZE_CHECKPOINT_FILE));
+  if (!isMaterializeCheckpoint(value) || value.commitId !== commitId || value.treeHash !== treeHash) {
+    return {};
+  }
+  return value.files;
+}
+async function checkpointFileMatches(projectRoot, path, expectedSha) {
+  try {
+    const bytes = await readFile7(join7(projectRoot, path));
+    return createHash4("sha256").update(bytes).digest("hex") === expectedSha;
+  } catch {
+    return false;
+  }
+}
+async function writeMaterializeCheckpoint(projectRoot, checkpoint) {
+  const path = join7(projectRoot, MATERIALIZE_CHECKPOINT_FILE);
+  await atomicWriteJson(path, checkpoint);
+}
+async function runMaterializeProject(input, cwd = process.cwd(), target2 = LEGACY_TARGET, signal) {
   if (!input || typeof input.ws_slug !== "string" || typeof input.proj_slug !== "string") {
     return { ok: false, error: "bad_input", hint: "ws_slug and proj_slug are required." };
   }
@@ -125692,17 +125788,32 @@ async function runMaterializeProject(input, cwd = process.cwd(), target2 = LEGAC
       method: "GET"
     });
     const tree = headBody.head?.treeJson ?? {};
-    const files = {};
+    const commitId = headBody.head?.commitId ?? null;
+    const treeHash = headBody.head?.treeHash ?? "0".repeat(64);
+    const files = target2.kind === "searchhub" ? await readMaterializeCheckpoint(absoluteProjectRoot, commitId, treeHash) : {};
+    const paceDownload = target2.kind === "searchhub" ? createRequestPacer(MATERIALIZE_DOWNLOAD_INTERVAL_MS) : null;
     for (const [path, sha] of Object.entries(tree)) {
       const reason = validateSyncPath(path);
       if (reason) {
         return { ok: false, error: "invalid_path", hint: `${path}: ${reason}` };
       }
-      const blob = await authenticatedFetchAt(
-        target2.backendUrl,
-        `/api/v1/ws/${workspace.id}/blobs/${sha}?variant=canonical-sync`,
-        { method: "GET" }
-      );
+      if (target2.kind === "searchhub" && files[path]?.sha256 === sha && await checkpointFileMatches(absoluteProjectRoot, path, sha)) {
+        continue;
+      }
+      await paceDownload?.();
+      const blobPath = `/api/v1/ws/${workspace.id}/blobs/${sha}`;
+      const blob = target2.kind === "searchhub" ? await retryRateLimited(
+        () => authenticatedFetchAt(
+          target2.backendUrl,
+          `${blobPath}?variant=canonical-sync`,
+          { method: "GET", signal }
+        ),
+        {
+          maxTotalWaitMs: MATERIALIZE_RETRY_WAIT_BUDGET_MS,
+          signal,
+          shouldRetry: (error48) => error48.scope === "minute" || error48.scope === "unknown" && error48.retryAfterSec <= 60
+        }
+      ) : await authenticatedFetchAt(target2.backendUrl, blobPath, { method: "GET" });
       const bytes = new Uint8Array(await blob.arrayBuffer());
       const targetPath = join7(absoluteProjectRoot, path);
       await mkdir6(dirname6(targetPath), { recursive: true });
@@ -125718,19 +125829,29 @@ async function runMaterializeProject(input, cwd = process.cwd(), target2 = LEGAC
         size: bytes.length,
         mime
       };
+      if (target2.kind === "searchhub") {
+        await writeMaterializeCheckpoint(absoluteProjectRoot, {
+          commitId,
+          treeHash,
+          files
+        });
+      }
     }
     const manifest = {
-      backendTarget: target2 === LEGACY_TARGET ? "legacy" : "searchhub",
+      backendTarget: target2.kind,
       projectId: project.id,
       workspaceId: workspace.id,
       workspaceSlug: workspace.slug,
       projectSlug: project.slug,
-      treeHash: headBody.head?.treeHash ?? "0".repeat(64),
-      commitId: headBody.head?.commitId ?? null,
+      treeHash,
+      commitId,
       updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
       files
     };
     await writeManifest(absoluteProjectRoot, manifest);
+    if (target2.kind === "searchhub") {
+      await rm3(join7(absoluteProjectRoot, MATERIALIZE_CHECKPOINT_FILE), { force: true });
+    }
     await upsertHubProject(
       hubRoot,
       {
@@ -125749,8 +125870,8 @@ async function runMaterializeProject(input, cwd = process.cwd(), target2 = LEGAC
       ok: true,
       path: absoluteProjectRoot,
       file_count: Object.keys(files).length,
-      commit_id: headBody.head?.commitId ?? null,
-      tree_hash: headBody.head?.treeHash ?? "0".repeat(64)
+      commit_id: commitId,
+      tree_hash: treeHash
     };
   } catch (err2) {
     return mapSyncError(err2);
@@ -125964,6 +126085,14 @@ function mapSyncError(err2) {
   if (err2 instanceof SessionExpiredError) {
     return { ok: false, error: "session_expired", hint: err2.message };
   }
+  if (err2 instanceof RateLimitedError) {
+    return {
+      ok: false,
+      error: "rate_limited",
+      hint: `Rate limit (${err2.scope}). Retry after ${err2.retryAfterSec}s.`,
+      retry_after_sec: err2.retryAfterSec
+    };
+  }
   if (err2 instanceof NetworkError) {
     return { ok: false, error: "network_error", hint: err2.message };
   }
@@ -125990,8 +126119,8 @@ function withSearchHubTarget(run) {
 function runSearchHubListWorkspacesProjects() {
   return withSearchHubTarget((target2) => runListWorkspacesProjects(target2));
 }
-function runSearchHubMaterializeProject(input, cwd = process.cwd()) {
-  return withSearchHubTarget((target2) => runMaterializeProject(input, cwd, target2));
+function runSearchHubMaterializeProject(input, cwd = process.cwd(), signal) {
+  return withSearchHubTarget((target2) => runMaterializeProject(input, cwd, target2, signal));
 }
 function runSearchHubSyncStatus(input, cwd = process.cwd()) {
   return withSearchHubTarget((target2) => runSyncStatus(input, cwd, target2));
@@ -126322,7 +126451,7 @@ function buildServer() {
       tools: [...tools, ...searchHubTools].filter((tool) => isToolEnabled(tool.name, mode))
     };
   });
-  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
     const { name: requestedName, arguments: args } = request.params;
     const safeArgs = args ?? {};
     const name = resolveToolName(requestedName, toolsetMode());
@@ -126428,7 +126557,12 @@ function buildServer() {
         result = await runListWorkspacesProjects();
         break;
       case "materialize_project":
-        result = await runMaterializeProject(safeArgs);
+        result = await runMaterializeProject(
+          safeArgs,
+          process.cwd(),
+          void 0,
+          extra.signal
+        );
         break;
       case "sync_status":
         result = await runSyncStatus(safeArgs);
@@ -126474,7 +126608,9 @@ function buildServer() {
         break;
       case "searchhub_materialize_project":
         result = await runSearchHubMaterializeProject(
-          safeArgs
+          safeArgs,
+          process.cwd(),
+          extra.signal
         );
         break;
       case "searchhub_sync_status":
